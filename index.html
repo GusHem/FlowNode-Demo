@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowNode v12.0 (Final Polish & Stability)</title>
+    <style>
+        /* DESIGN SYSTEM: FlowNode v12.0 */
+        :root {
+            --font-primary: 'Inter', sans-serif;
+            --timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Light & Dark Theme Variables */
+        body, .flownode-sidebar {
+            --bg-primary: #f9fafb; --bg-secondary: #ffffff; --bg-tertiary: #f3f4f6;
+            --text-primary: #111827; --text-secondary: #6b7280; --border-color: #e5e7eb;
+            --accent-color: #4f46e5; --accent-text: #ffffff; --shadow-color: rgba(0, 0, 0, 0.05);
+            --suggestion-bg: #f3f4f6; --suggestion-bg-hover: #e5e7eb;
+            --status-red: #ef4444; --status-yellow: #f59e0b; --status-green: #22c55e;
+            --status-green-bg: #ecfdf5; --status-green-text: #065f46;
+            --status-gray-bg: #f3f4f6; --status-gray-text: #374151;
+        }
+
+        .flownode-sidebar.dark {
+            --bg-primary: #111827; --bg-secondary: #1f2937; --bg-tertiary: #374151;
+            --text-primary: #f9fafb; --text-secondary: #9ca3af; --border-color: #374151;
+            --shadow-color: rgba(0, 0, 0, 0.2);
+            --suggestion-bg: #374151; --suggestion-bg-hover: #4b5563;
+            --status-green-bg: #064e3b; --status-green-text: #d1fae5;
+            --status-gray-bg: #374151; --status-gray-text: #d1d5db;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-primary); color: var(--text-primary);
+            font-family: var(--font-primary);
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        /* --- Base Layout --- */
+        .split-view-container { display: flex; height: 100vh; width: 100%; }
+        .dummy-browser { flex-grow: 1; display: flex; flex-direction: column; background-color: #eef2ff; }
+        .browser-toolbar { display: flex; align-items: center; padding: 0.75rem; background-color: #fff; border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
+        .window-dots { display: flex; gap: 0.5rem; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .dot.red { background-color: #ff5f57; } .dot.yellow { background-color: #febc2e; } .dot.green { background-color: #28c840; }
+        .address-bar { flex-grow: 1; background-color: var(--bg-tertiary); color: var(--text-secondary); border-radius: 6px; padding: 0.5rem 1rem; margin: 0 1rem; font-size: 0.9rem; text-align: left; border: none; }
+        .dummy-content { padding: 2rem; overflow-y: auto; flex-grow: 1; background: #fff;}
+        
+        .flownode-sidebar {
+            width: 420px; min-width: 380px; background-color: var(--bg-secondary);
+            border-left: 1px solid var(--border-color); display: flex; flex-direction: column;
+            box-shadow: -10px 0 30px var(--shadow-color);
+            transition: all 0.3s var(--timing-function);
+            position: relative; overflow: hidden;
+        }
+        
+        /* --- View Switching Logic --- */
+        .view-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; transition: transform 0.4s var(--timing-function), opacity 0.4s; background-color: var(--bg-secondary); }
+        #chat-view { transform: translateX(0); z-index: 2; }
+        #canvas-view, #library-view, #team-view, #flows-view { transform: translateX(100%); z-index: 1; opacity: 0; }
+        .flownode-sidebar.canvas-active #chat-view, .flownode-sidebar.library-active #chat-view, .flownode-sidebar.team-active #chat-view, .flownode-sidebar.flows-active #chat-view { transform: translateX(-100%); opacity: 0; }
+        .flownode-sidebar.canvas-active #canvas-view, .flownode-sidebar.library-active #library-view, .flownode-sidebar.team-active #team-view, .flownode-sidebar.flows-active #flows-view { transform: translateX(0); opacity: 1; }
+        
+        /* --- Header --- */
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); flex-shrink: 0; background-color: var(--bg-secondary); z-index: 5; }
+        .sidebar-title { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+        .sidebar-title-text { font-size: 1.2rem; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .version-badge { font-size: 0.6rem; font-weight: bold; color: var(--accent-color); background-color: var(--bg-tertiary); padding: 2px 5px; border-radius: 4px; margin-left: 0.5rem; flex-shrink: 0;}
+        .header-actions { display: flex; align-items: center; gap: 0.5rem; }
+        .collaborators { display: flex; align-items: center; cursor: pointer; }
+        .avatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--bg-secondary); margin-left: -10px; background-size: cover; box-shadow: 0 0 0 1px var(--border-color); }
+        .header-btn { background: none; border: none; color: var(--text-secondary); width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .header-btn:hover { color: var(--text-primary); background-color: var(--bg-tertiary); }
+        .header-btn svg { width: 20px; height: 20px; }
+        
+        /* --- Chat UI --- */
+        .chat-container { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        .chat-messages { flex-grow: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
+        .welcome-placeholder { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--text-secondary); padding: 2rem; }
+        .welcome-placeholder svg { width: 48px; height: 48px; color: var(--accent-color); opacity: 0.5; margin-bottom: 1rem; }
+        .welcome-placeholder h3 { font-size: 1.1rem; color: var(--text-primary); margin-bottom: 0.25rem; }
+        .chat-message { max-width: 95%; font-size: 0.9rem; line-height: 1.5; opacity: 0; transform: translateY(10px); animation: fade-in 0.5s var(--timing-function) forwards; }
+        @keyframes fade-in { to { opacity: 1; transform: translateY(0); } }
+        .message-bubble { padding: 0.75rem 1rem; border-radius: 12px; }
+        .user-message { align-self: flex-end; } .user-message .message-bubble { background-color: var(--accent-color); color: var(--accent-text); }
+        .bot-message { align-self: flex-start; } .bot-message .message-bubble { background-color: var(--bg-tertiary); color: var(--text-primary); }
+        .chat-input-area { flex-shrink: 0; padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); background-color: var(--bg-secondary); }
+        .chat-input-bar { display: flex; align-items: flex-end; background-color: var(--bg-tertiary); border-radius: 12px; padding: 0.25rem; gap: 0.25rem; }
+        #chat-input { flex-grow: 1; border: none; background: none; outline: none; resize: none; padding: 0.6rem 0.75rem; font-size: 0.9rem; color: var(--text-primary); font-family: var(--font-primary); max-height: 120px; overflow-y: auto; }
+        .chat-action-btn { width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .chat-action-btn.primary { background-color: var(--accent-color); color: var(--accent-text); }
+        .chat-action-btn.secondary { background-color: transparent; color: var(--text-secondary); }
+        .chat-action-btn.secondary:hover { background-color: var(--suggestion-bg-hover); color: var(--text-primary); }
+        .suggestion-card-container { padding: 0 0 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; }
+        .suggestion-btn { background-color: var(--suggestion-bg); color: var(--text-primary); border: none; width: 100%; text-align: left; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; cursor: pointer; transition: background-color 0.2s var(--timing-function); display: flex; align-items: center; gap: 0.75rem; }
+        .suggestion-btn:hover { background-color: var(--suggestion-bg-hover); }
+
+        /* --- Tool Library --- */
+        .library-content { display: flex; flex-direction: column; flex-grow: 1; overflow: hidden; }
+        .library-search { padding: 1rem; border-bottom: 1px solid var(--border-color); }
+        #tool-search-input { width: 100%; background-color: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.9rem; color: var(--text-primary); }
+        .tool-library-container { flex-grow: 1; overflow-y: auto; padding: 1.5rem; }
+        .tool-category h3 { font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
+        .tool-card { text-align: center; padding: 1.5rem 1rem; border-radius: 12px; border: 1px solid var(--border-color); background-color: var(--bg-secondary); transition: all 0.2s; cursor: pointer; }
+        .tool-card:hover { transform: translateY(-4px); box-shadow: 0 4px 15px var(--shadow-color); }
+        .tool-card .tool-icon { width: 48px; height: 48px; border-radius: 12px; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; color: white; }
+        .tool-card .tool-name { font-weight: 500; color: var(--text-primary); }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-left: 0.5rem; }
+        .status-dot.connected { background-color: var(--status-green); }
+        
+        /* --- Team View --- */
+        .team-view-container { flex-grow: 1; overflow-y: auto; padding: 1.5rem; }
+        .team-member-list { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
+        .team-member-card { display: flex; align-items: center; justify-content: space-between; background-color: var(--bg-tertiary); padding: 1rem; border-radius: 12px; }
+        .member-info { display: flex; align-items: center; gap: 1rem; }
+        .member-avatar { width: 48px; height: 48px; border-radius: 50%; background-size: cover; position: relative; }
+        .online-indicator { width: 12px; height: 12px; border-radius: 50%; background-color: var(--status-gray-text); border: 2px solid var(--bg-tertiary); position: absolute; bottom: 0; right: 0; }
+        .online-indicator.online { background-color: var(--status-green); }
+        .member-details .name { font-weight: 600; color: var(--text-primary); }
+        .member-details .role { font-size: 0.8rem; color: var(--text-secondary); }
+        .member-socials { display: flex; gap: 0.5rem; }
+        .member-socials a { color: var(--text-secondary); text-decoration: none; }
+        .member-socials a:hover { color: var(--accent-color); }
+        .member-socials svg { width: 20px; height: 20px; }
+        .invite-section h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; }
+        .invite-bar { display: flex; gap: 0.5rem; }
+        .invite-input { flex-grow: 1; background-color: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.6rem; color: var(--text-primary); font-size: 0.9rem; }
+        .invite-btn { border: none; padding: 0.6rem 1rem; border-radius: 8px; font-weight: 500; cursor: pointer; transition: background-color 0.2s; background-color: var(--accent-color); color: var(--accent-text); }
+        
+        /* --- Flows View --- */
+        .flows-view-container { flex-grow: 1; display: flex; flex-direction: column; }
+        .flows-list { flex-grow: 1; overflow-y: auto; padding: 1rem; }
+        .flow-card { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-radius: 8px; margin-bottom: 0.75rem; border: 1px solid var(--border-color); background-color: var(--bg-secondary); cursor: pointer; }
+        .flow-card.active { border-color: var(--accent-color); }
+        .flows-footer { padding: 1rem; border-top: 1px solid var(--border-color); }
+        .create-flow-btn { width: 100%; border: none; padding: 0.7rem; border-radius: 8px; font-weight: 500; cursor: pointer; background-color: var(--accent-color); color: var(--accent-text); }
+        
+        /* --- Canvas View --- */
+        .workflow-canvas-container { flex-grow: 1; position: relative; overflow: hidden; background-color: var(--bg-primary); }
+        
+    </style>
+</head>
+<body>
+    <!-- SVG Icons -->
+    <svg width="0" height="0" style="display:none;">
+        <symbol id="icon-flow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z"/><path d="M15.5 16l-4-4 4-4"/><path d="M8.5 16l4-4-4-4"/></symbol>
+        <symbol id="icon-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></symbol>
+        <symbol id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></symbol>
+        <symbol id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
+        <symbol id="icon-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+        <symbol id="icon-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></symbol>
+        <symbol id="icon-sparkles" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3L9.27 9.27L3 12l6.27 2.73L12 21l2.73-6.27L21 12l-6.27-2.73z"/></symbol>
+        <symbol id="icon-linkedin" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></symbol>
+        <symbol id="icon-twitter" viewBox="0 0 24 24" fill="currentColor"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616v.064c0 2.298 1.634 4.212 3.793 4.649-.65.177-1.354.23-2.067.087.616 1.9 2.396 3.281 4.5 3.315-2.056 1.623-4.596 2.45-7.221 2.054 2.146 1.373 4.69 2.16 7.34 2.16 8.517 0 13.18-7.058 13.18-13.18 0-.201 0-.402-.013-.602.9-.648 1.68-1.46 2.304-2.393z"/></symbol>
+    </svg>
+
+    <div class="split-view-container">
+        <!-- Dummy Browser View -->
+        <div class="dummy-browser">
+            <div class="browser-toolbar">
+                <div class="window-dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
+                <input type="text" class="address-bar" value="https://nordsym.salesforce.com/lightning/r/Opportunity/0068e00000...">
+            </div>
+            <div class="dummy-content">
+                <pre id="page-content" style="display:none;">Salesforce Opportunity Closed Won. Deal: QuantumLeap AI. Amount: $250,000. Manager: Anna Berg.</pre>
+            </div>
+        </div>
+
+        <!-- FlowNode Sidebar -->
+        <div class="flownode-sidebar" id="flownode-sidebar">
+            <!-- VIEW 1: CHAT -->
+            <div id="chat-view" class="view-container">
+                <div class="sidebar-header">
+                    <div class="sidebar-title">
+                        <h2 class="sidebar-title-text" id="active-flow-title-chat"></h2>
+                        <span class="version-badge">v12.0</span>
+                    </div>
+                    <div class="header-actions">
+                        <button class="header-btn" id="show-flows-btn" title="Mina Flöden"><svg><use href="#icon-folder"></use></svg></button>
+                        <button class="header-btn" id="show-library-btn" title="Verktygsbibliotek"><svg><use href="#icon-grid"></use></svg></button>
+                        <div class="collaborators" id="collaborators"></div>
+                        <button class="header-btn" id="theme-toggle-btn" title="Växla tema"><svg id="theme-icon"><use href="#icon-sun"></use></svg></button>
+                    </div>
+                </div>
+                 <div class="chat-container">
+                    <div class="chat-messages" id="chat-messages"></div>
+                    <div class="chat-input-area" id="chat-input-area">
+                        <div id="contextual-suggestions"></div>
+                        <div class="chat-input-bar">
+                            <button class="chat-action-btn secondary" id="analyze-page-btn" title="Analysera Sida"><svg><use href="#icon-sparkles"></use></svg></button>
+                            <textarea id="chat-input" placeholder="Fråga om sidan, eller 'Skapa flöde: ...'" rows="1"></textarea>
+                            <button id="chat-send-btn" class="chat-action-btn primary" title="Skicka">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Other Views -->
+            <div id="canvas-view" class="view-container">
+                 <div class="sidebar-header">
+                    <div class="sidebar-title"><h2 class="sidebar-title-text" id="active-flow-title-canvas"></h2></div>
+                    <div class="header-actions"><button class="header-btn" id="show-chat-btn-canvas" title="Visa chatt"><svg><use href="#icon-chat"></use></svg></button></div>
+                 </div>
+                 <div class="workflow-canvas-container"><svg id="workflow-svg-layer" style="position:absolute; top:0; left:0; width:100%; height:100%;"></svg><div id="workflow-canvas" style="position:absolute;"></div></div>
+            </div>
+            <div id="library-view" class="view-container">
+                 <div class="sidebar-header">
+                    <div class="sidebar-title"><h2>Verktygsbibliotek</h2></div>
+                    <div class="header-actions"><button class="header-btn" id="show-chat-btn-library" title="Visa chatt"><svg><use href="#icon-chat"></use></svg></button></div>
+                 </div>
+                 <div class="library-content">
+                    <div class="library-search"><input type="text" id="tool-search-input" placeholder="Sök verktyg..."></div>
+                    <div class="tool-library-container" id="tool-library-container"></div>
+                 </div>
+            </div>
+            <div id="team-view" class="view-container">
+                 <div class="sidebar-header">
+                    <div class="sidebar-title"><h2>Team & Socials</h2></div>
+                    <div class="header-actions"><button class="header-btn" id="show-chat-btn-team" title="Visa chatt"><svg><use href="#icon-chat"></use></svg></button></div>
+                 </div>
+                 <div class="team-view-container" id="team-view-container"></div>
+            </div>
+            <div id="flows-view" class="view-container">
+                 <div class="sidebar-header">
+                    <div class="sidebar-title"><h2>Mina Flöden</h2></div>
+                    <div class="header-actions"><button class="header-btn" id="show-chat-btn-flows" title="Visa chatt"><svg><use href="#icon-chat"></use></svg></button></div>
+                 </div>
+                 <div class="flows-view-container">
+                    <div class="flows-list" id="flows-list"></div>
+                    <div class="flows-footer"><button class="create-flow-btn" id="create-flow-btn">Skapa nytt flöde</button></div>
+                 </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    'use strict';
+    
+    // Services and Data (Unchanged from v11)
+    const GeminiService = { /* ... */ }; const NodeLibrary = { /* ... */ }; const State = { /* ... */ };
+    
+    // Main App Logic
+    const App = {
+        async init() {
+            this.elements = {
+                sidebar: document.getElementById('flownode-sidebar'),
+                chatMessages: document.getElementById('chat-messages'), chatInput: document.getElementById('chat-input'),
+                chatSendBtn: document.getElementById('chat-send-btn'), analyzePageBtn: document.getElementById('analyze-page-btn'),
+                contextualSuggestions: document.getElementById('contextual-suggestions'), activeFlowTitleChat: document.getElementById('active-flow-title-chat'),
+                activeFlowTitleCanvas: document.getElementById('active-flow-title-canvas'), themeToggleBtn: document.getElementById('theme-toggle-btn'),
+                showLibraryBtn: document.getElementById('show-library-btn'), showFlowsBtn: document.getElementById('show-flows-btn'),
+                collaborators: document.getElementById('collaborators'), pageContent: document.getElementById('page-content'),
+                themeIcon: document.getElementById('theme-icon'), showChatBtnCanvas: document.getElementById('show-chat-btn-canvas'),
+                showChatBtnLibrary: document.getElementById('show-chat-btn-library'), showChatBtnTeam: document.getElementById('show-chat-btn-team'),
+                showChatBtnFlows: document.getElementById('show-chat-btn-flows'), createFlowBtn: document.getElementById('create-flow-btn'),
+                flowsList: document.getElementById('flows-list'), toolLibraryContainer: document.getElementById('tool-library-container'),
+                toolSearchInput: document.getElementById('tool-search-input'), teamViewContainer: document.getElementById('team-view-container')
+            };
+            
+            await State.load();
+            this.applyTheme();
+            this.setupListeners();
+            this.renderAll();
+            this.renderWelcomeMessage();
+        },
+
+        setupListeners() {
+            Object.values(this.elements).forEach(el => { if(!el) console.error("Ett UI-element saknas!"); });
+            this.elements.chatSendBtn.onclick = () => this.handleUserMessage();
+            this.elements.analyzePageBtn.onclick = () => this.fetchAndShowSuggestions();
+            this.elements.chatInput.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.handleUserMessage(); }};
+            this.elements.showLibraryBtn.onclick = () => this.setView('library');
+            this.elements.collaborators.onclick = () => this.setView('team');
+            this.elements.showFlowsBtn.onclick = () => this.setView('flows');
+            this.elements.themeToggleBtn.onclick = () => this.toggleTheme();
+            this.elements.toolSearchInput.onkeyup = () => this.renderToolLibrary();
+            this.elements.createFlowBtn.onclick = () => this.createNewFlow();
+            document.querySelectorAll('#show-chat-btn-canvas, #show-chat-btn-library, #show-chat-btn-team, #show-chat-btn-flows').forEach(btn => {
+                if(btn) btn.onclick = () => this.setView('chat');
+            });
+        },
+        
+        renderAll() {
+            this.renderActiveFlowHeader(); this.renderHeaderAvatars(); this.renderFlowsList(); 
+            this.renderToolLibrary(); this.renderTeamView();
+        },
+
+        renderWelcomeMessage() {
+            this.elements.chatMessages.innerHTML = `
+                <div class="welcome-placeholder">
+                    <svg><use href="#icon-flow"></use></svg>
+                    <h3>Välkommen till FlowNode</h3>
+                    <p>Klicka på ✨ för att analysera sidan, eller ställ en fråga.</p>
+                </div>`;
+        },
+
+        // --- All other methods are here, complete and unchanged from previous stable versions ---
+        handleUserMessage() { /* ... */ }, fetchAndShowSuggestions() { /* ... */ },
+        renderSuggestions(title, suggestions) { /* ... */ }, addMessage(msg) { /* ... */ },
+        removeMessage(msgId) { /* ... */ }, setView(view) { /* ... */ },
+        getActiveFlow() { return State.flows.find(f => f.id === State.activeFlowId) || State.flows[0]; },
+        renderActiveFlowHeader() { const flow = this.getActiveFlow(); if(flow && this.elements.activeFlowTitleChat) { this.elements.activeFlowTitleChat.textContent = flow.name; this.elements.activeFlowTitleCanvas.textContent = flow.name; } },
+        applyTheme() { if(this.elements.sidebar) this.elements.sidebar.classList.toggle('dark', State.theme === 'dark'); if(this.elements.themeIcon) this.elements.themeIcon.innerHTML = `<use href="${State.theme === 'dark' ? '#icon-moon' : '#icon-sun'}"></use>`;},
+        toggleTheme() { State.theme = State.theme === 'light' ? 'dark' : 'light'; this.applyTheme(); },
+        renderHeaderAvatars() { if(this.elements.collaborators) this.elements.collaborators.innerHTML = State.users.map(u => `<div class="avatar" style="background-image: url(${u.avatar})"></div>`).join(''); },
+        createNewFlow() { /* ... */ }, setActiveFlow(flowId) { /* ... */ }, renderFlowsList() { /* ... */ },
+        renderToolLibrary() { /* ... */ }, renderTeamView() { /* ... */ }
+    };
+    
+    // Full stubs for brevity
+    GeminiService.interpretQuery=async function(t){await new Promise(r=>setTimeout(r,200));const e=["skapa flöde","automatisera","regel:","när "];return e.some(n=>t.toLowerCase().startsWith(n))?{intent:"BUILD_WORKFLOW",command:t}:{intent:"CHAT",query:t}};GeminiService.buildWorkflow=async function(t){await new Promise(r=>setTimeout(r,1e3));const e=t.toLowerCase();return e.includes("salesforce")&&e.includes("slack")?{success:!0,workflow:{nodes:[{id:"n1",variantId:"salesforce-deal-won",position:{x:50,y:150}},{id:"n2",variantId:"slack-send-message",position:{x:350,y:150}}],connections:[{from:"n1",to:"n2"}]}}:{success:!1,reason:"Förstod ej flödet."}};GeminiService.chatAboutContext=async function(t,e){await new Promise(r=>setTimeout(r,800));const n=t.toLowerCase(),o=e.toLowerCase();if(n.includes("värde")){const s=o.match(/\$(\d{1,3}(,\d{3})*(\.\d+)?)/);return{success:!0,answer:s?`Värdet är ${s[0]}.`:"Hittade ej värde."}}return n.includes("ansvarig")?(console.log(o),{success:!0,answer:"Ansvarig är Anna Berg."}):{success:!0,answer:"Det var en intressant fråga!"}};GeminiService.suggestFromContext=async function(t){await new Promise(r=>setTimeout(r,1e3));return t.toLowerCase().includes("salesforce")?{success:!0,title:"Förslag för sidan:",suggestions:[{label:"Meddela #sales-wins i Slack",command:"Skapa flöde: När en deal vinns, skicka till Slack."}]}:{success:!1}};State.users=[{id:"u1",name:"You",avatar:"https://i.pravatar.cc/40?u=user1",role:"Admin",online:!0,socials:{linkedin:"#",twitter:"#"}},{id:"u2",name:"Anna Berg",avatar:"https://i.pravatar.cc/40?u=user2",role:"Sales Lead",online:!0,socials:{linkedin:"#",twitter:"#"}},{id:"u3",name:"Karl Nilsson",avatar:"https://i.pravatar.cc/40?u=user3",role:"Developer",online:!1,socials:{linkedin:"#",twitter:"#"}},{id:"u4",name:"Sofia Lund",avatar:"https://i.pravatar.cc/40?u=user4",role:"Marketing",online:!0,socials:{linkedin:"#",twitter:"#"}}];State.theme="light";State.activeFlowId="flow1";State.flows=[{id:"flow1",name:"Salesforce Onboarding",nodes:[],connections:[]}];State.tools={"Project Management":[{id:"jira",name:"Jira",iconBg:"#0052CC",connected:!0},{id:"asana",name:"Asana",iconBg:"#273347",connected:!1},{id:"trello",name:"Trello",iconBg:"#0079BF",connected:!0},{id:"notion",name:"Notion",iconBg:"#000000",connected:!1},{id:"monday",name:"Monday.com",iconBg:"#FF1A5A",connected:!1}],Development:[{id:"github",name:"GitHub",iconBg:"#181717",connected:!0},{id:"gitlab",name:"GitLab",iconBg:"#FC6D26",connected:!1},{id:"bitbucket",name:"Bitbucket",iconBg:"#0052CC",connected:!1},{id:"datadog",name:"Datadog",iconBg:"#632CA6",connected:!0}],"Sales & CRM":[{id:"salesforce",name:"Salesforce",iconBg:"#00A1E0",connected:!0},{id:"hubspot",name:"HubSpot",iconBg:"#FF7A59",connected:!1},{id:"pipedrive",name:"Pipedrive",iconBg:"#2D883D",connected:!1}],Communication:[{id:"slack",name:"Slack",iconBg:"#4A154B",connected:!1},{id:"discord",name:"Discord",iconBg:"#5865F2",connected:!0},{id:"msteams",name:"MS Teams",iconBg:"#6264A7",connected:!1}],"Documents & Files":[{id:"gsheets",name:"Google Sheets",iconBg:"#188038",connected:!0},{id:"gdrive",name:"Google Drive",iconBg:"#4285F4",connected:!1},{id:"dropbox",name:"Dropbox",iconBg:"#0061FF",connected:!1}]};State.load=async function(){};State.save=async function(){};App.handleUserMessage=async function(){const t=this.elements.chatInput.value.trim();if(!t)return;this.elements.chatMessages.querySelector(".welcome-placeholder")?.remove(),this.addMessage({sender:"user",content:{type:"text",value:t}}),this.elements.chatInput.value="",this.elements.contextualSuggestions.innerHTML="";const e=this.addMessage({sender:"bot",content:{type:"loading"}}),n=await GeminiService.interpretQuery(t);if("BUILD_WORKFLOW"===n.intent){const o=await GeminiService.buildWorkflow(n.command);if(this.removeMessage(e.id),o.success){const s=this.getActiveFlow();s&&(s.nodes=o.workflow.nodes,s.connections=o.workflow.connections,await State.save(),this.addMessage({sender:"bot",content:{type:"text",value:"OK, jag har skapat flödet."}}),this.renderAll(),setTimeout(()=>this.setView("canvas"),500))}else this.addMessage({sender:"bot",content:{type:"text",value:o.reason}})}else{const a=this.elements.pageContent.textContent,i=await GeminiService.chatAboutContext(n.query,a);this.removeMessage(e.id),i.success&&this.addMessage({sender:"bot",content:{type:"text",value:i.answer}})}};App.fetchAndShowSuggestions=async function(){this.elements.chatMessages.querySelector(".welcome-placeholder")?.remove();const t=this.addMessage({sender:"bot",content:{type:"loading"}}),e=this.elements.pageContent.textContent,n=await GeminiService.suggestFromContext(e);this.removeMessage(t.id),n.success?this.renderSuggestions(n.title,n.suggestions):this.addMessage({sender:"bot",content:{type:"text",value:"Hittade inga förslag."}})};App.renderSuggestions=function(t,e){let n=`<div class="suggestion-card-container"><p style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.25rem;">${t}</p>`;e.forEach(o=>{n+=`<button class="suggestion-btn" data-command="${o.command}">${o.label}</button>`}),n+="</div>",this.elements.contextualSuggestions.innerHTML=n,this.elements.contextualSuggestions.querySelectorAll(".suggestion-btn").forEach(s=>{s.onclick=()=>{this.elements.chatInput.value=s.dataset.command,this.handleUserMessage()}})};App.addMessage=function(t){const e=`msg-${Date.now()}`,n=document.createElement("div"),o=t.sender==="user"?"user-message":"bot-message";n.className=`chat-message ${o}`,n.id=e;let s;s="loading"===t.content.type?"...":t.content.value,n.innerHTML=`<div class="message-bubble">${s}</div>`,this.elements.chatMessages.appendChild(n),this.elements.chatMessages.scrollTop=this.elements.chatMessages.scrollHeight;return{id:e}};App.removeMessage=function(t){document.getElementById(t)?.remove()};App.setView=function(t){this.elements.sidebar.className="flownode-sidebar",State.theme==="dark"&&this.elements.sidebar.classList.add("dark"),"chat"!==t&&this.elements.sidebar.classList.add(`${t}-active`),"flows"===t&&this.renderFlowsList()};App.createNewFlow=function(){const t={id:`flow_${Date.now()}`,name:"Namnlöst flöde",nodes:[],connections:[]};State.flows.push(t),State.activeFlowId=t.id,this.renderAll(),this.setView("chat")};App.setActiveFlow=function(t){State.activeFlowId=t,this.renderAll(),this.setView("chat")};App.renderFlowsList=function(){const t=this.elements.flowsList;t&&(t.innerHTML=State.flows.map(e=>`<div class="flow-card ${e.id===State.activeFlowId?"active":""}" data-flow-id="${e.id}"><span>${e.name}</span></div>`).join(""),t.querySelectorAll(".flow-card").forEach(n=>{n.onclick=()=>this.setActiveFlow(n.dataset.flowId)}))};App.renderToolLibrary=function(){const t=this.elements.toolLibraryContainer,e=this.elements.toolSearchInput.value.toLowerCase();let n="";for(const o in State.tools){const s=State.tools[o].filter(a=>a.name.toLowerCase().includes(e));s.length>0&&(n+=`<div class="tool-category"><h3>${o}</h3><div class="tool-grid">`,s.forEach(i=>{n+=` <div class="tool-card" data-tool-id="${i.id}"> <div class="tool-icon" style="background-color: ${i.iconBg};">${i.name.charAt(0)}</div> <div class="tool-name">${i.name} <span class="status-dot ${i.connected?"connected":""}"></span></div> </div> `}),n+="</div></div>")}t.innerHTML=n};App.renderTeamView=function(){const t=this.elements.teamViewContainer;t&&(t.innerHTML=` <div class="team-member-list">${State.users.map(e=>` <div class="team-member-card"> <div class="member-info"> <div class="member-avatar" style="background-image: url(${e.avatar})"> <div class="online-indicator ${e.online?"online":""}"></div> </div> <div class="member-details"> <div class="name">${e.name} ${"u1"===e.id?"(You)":""}</div> <div class="role">${e.role}</div> </div> </div> <div class="member-socials"> <a href="${e.socials.linkedin}" target="_blank" title="LinkedIn"><svg><use href="#icon-linkedin"></use></svg></a> <a href="${e.socials.twitter}" target="_blank" title="Twitter"><svg><use href="#icon-twitter"></use></svg></a> </div> </div> `).join("")}</div> <div class="invite-section"> <h3>Bjud in teammedlem</h3> <div class="invite-bar"> <input type="email" class="invite-input" id="invite-email-input" placeholder="kollega@foretag.se"> <button class="invite-btn" id="invite-btn">Bjud in</button> </div> </div>`)};
+    document.addEventListener('DOMContentLoaded', () => App.init());
+    </script>
+</body>
+</html>
+
