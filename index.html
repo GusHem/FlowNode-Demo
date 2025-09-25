@@ -309,8 +309,8 @@
                     <p class="subtitle">FlowNode är ett Chrome-tillägg som låter dig koppla samman dina favoritappar som Salesforce, Jira och Slack utan en enda rad kod. Säg hejdå till krångliga API-nycklar och hej till sömlösa arbetsflöden.</p>
                     
                     <h3>Gå med på vår väntelista</h3>
-                    <form class="waitlist-form" onsubmit="event.preventDefault(); this.innerHTML = '<p style=\'color: var(--status-green-text); font-weight: 500;\'>Tack! Du är nu på väntelistan.</p>';">
-                        <input type="email" placeholder="din.mejl@foretag.se" class="waitlist-input" required>
+                    <form class="waitlist-form" action="https://formspree.io/f/xeorolle" method="POST">
+                        <input type="email" name="email" placeholder="din.mejl@foretag.se" class="waitlist-input" required>
                         <button type="submit" class="waitlist-button">Skriv upp mig</button>
                     </form>
                 </div>
@@ -886,6 +886,7 @@
     </script>
 </body>
 </html>
+
 
 
 
