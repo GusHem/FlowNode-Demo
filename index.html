@@ -45,14 +45,94 @@
         
         /* --- Base Layout --- */
         .split-view-container { display: flex; height: 100vh; width: 100%; }
-        .dummy-browser { flex-grow: 1; display: flex; flex-direction: column; background-color: #eef2ff; }
-        .browser-toolbar { display: flex; align-items: center; padding: 0.75rem; background-color: #fff; border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
+        
+        /* --- DUMMY BROWSER STYLES --- */
+        .dummy-browser { flex-grow: 1; display: flex; flex-direction: column; background-color: #eef2ff; position: relative; }
+        .browser-header { flex-shrink: 0; background-color: var(--bg-tertiary); }
+        .flownode-sidebar.dark .browser-header { background-color: #374151; }
+        
+        .browser-tabs { display: flex; padding: 0.5rem 0.5rem 0; }
+        .browser-tab {
+            display: flex; align-items: center; gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background-color: #e0e7ff;
+            border: 1px solid #c7d2fe;
+            border-bottom: none;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            position: relative;
+            top: 1px;
+            cursor: default;
+            opacity: 0.7;
+        }
+        .flownode-sidebar.dark .browser-tab { background-color: #4b5563; border-color: #6b7280; }
+        .tab-icon { width: 16px; height: 16px; }
+
+        .browser-tab.active {
+            background-color: #fff;
+            color: var(--text-primary);
+            border-color: var(--border-color);
+            border-bottom: 1px solid #fff;
+            opacity: 1;
+        }
+        .flownode-sidebar.dark .browser-tab.active {
+            background-color: #fff;
+            color: #111827;
+            border-color: var(--border-color);
+            border-bottom-color: #fff;
+        }
+        
+        .browser-toolbar { display: flex; align-items: center; padding: 0.75rem; background-color: #fff; border-bottom: 1px solid var(--border-color); }
         .window-dots { display: flex; gap: 0.5rem; }
         .dot { width: 12px; height: 12px; border-radius: 50%; }
         .dot.red { background-color: #ff5f57; } .dot.yellow { background-color: #febc2e; } .dot.green { background-color: #28c840; }
         .address-bar { flex-grow: 1; background-color: var(--bg-tertiary); color: var(--text-secondary); border-radius: 6px; padding: 0.5rem 1rem; margin: 0 1rem; font-size: 0.9rem; text-align: left; border: none; }
         .dummy-content { padding: 2rem; overflow-y: auto; flex-grow: 1; background: #fff;}
         
+        /* --- Selection Simulation --- */
+        .selection-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(79, 70, 229, 0.1);
+            z-index: 1000;
+            cursor: crosshair;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        .selection-overlay::before { /* Instructional text */
+            content: 'Klicka och dra för att välja ett område';
+            background-color: var(--accent-color);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            animation: fade-in-out-text 2.8s forwards;
+        }
+        .selection-overlay::after { /* The animated selection box */
+            content: '';
+            position: absolute;
+            top: 45%; left: 30%;
+            width: 0; height: 0;
+            border: 2px dashed var(--accent-color);
+            background-color: rgba(79, 70, 229, 0.2);
+            animation: draw-selection-box 1.5s 0.5s forwards ease-in-out;
+        }
+        @keyframes draw-selection-box { to { width: 40%; height: 20%; } }
+        @keyframes fade-in-out-text { 0%, 100% { opacity: 0; } 10%, 90% { opacity: 1; } }
+
+        /* --- FlowNode Product Page --- */
+        .product-page { max-width: 700px; margin: 2rem auto; text-align: center; color: var(--text-primary); }
+        .product-page h1 { font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; color: #111827; line-height: 1.2; }
+        .product-page .subtitle { font-size: 1.1rem; color: var(--text-secondary); max-width: 500px; margin: 0 auto 2rem; line-height: 1.6; }
+        .product-page h3 { font-size: 1.2rem; font-weight: 600; margin-top: 3rem; margin-bottom: 0.5rem; }
+        .waitlist-form { display: flex; gap: 0.5rem; margin-top: 1rem; max-width: 450px; margin-left: auto; margin-right: auto; }
+        .waitlist-input { flex-grow: 1; background-color: var(--bg-secondary); border: 1px solid var(--border-color); padding: 0.75rem; border-radius: 6px; font-size: 0.9rem; color: var(--text-primary); }
+        .waitlist-button { background-color: var(--accent-color); color: var(--accent-text); border: none; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 500; cursor: pointer; transition: background-color 0.2s; }
+        .waitlist-button:hover { opacity: 0.9; }
+
         .flownode-sidebar {
             width: 420px; min-width: 380px; background-color: var(--bg-secondary);
             border-left: 1px solid var(--border-color); display: flex; flex-direction: column;
@@ -71,8 +151,9 @@
         /* --- Header --- */
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); flex-shrink: 0; background-color: var(--bg-secondary); z-index: 5; }
         .sidebar-title { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+        .sidebar-avatar { width: 32px; height: 32px; border-radius: 8px; }
         .sidebar-title-text { font-size: 1.2rem; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .version-badge { font-size: 0.6rem; font-weight: bold; color: var(--accent-color); background-color: var(--bg-tertiary); padding: 2px 5px; border-radius: 4px; margin-left: 0.5rem; flex-shrink: 0;}
+        .version-badge { font-size: 0.6rem; font-weight: bold; color: var(--accent-color); background-color: var(--bg-tertiary); padding: 2px 5px; border-radius: 4px; margin-left: auto; flex-shrink: 0;}
         .header-actions { display: flex; align-items: center; gap: 0.5rem; }
         .collaborators { display: flex; align-items: center; cursor: pointer; }
         .avatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--bg-secondary); margin-left: -10px; background-size: cover; box-shadow: 0 0 0 1px var(--border-color); }
@@ -98,6 +179,7 @@
         .chat-action-btn.primary { background-color: var(--accent-color); color: var(--accent-text); }
         .chat-action-btn.secondary { background-color: transparent; color: var(--text-secondary); }
         .chat-action-btn.secondary:hover { background-color: var(--suggestion-bg-hover); color: var(--text-primary); }
+        .chat-action-btn svg { width: 18px; height: 18px; }
         .suggestion-card-container { padding: 0 0 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; }
         .suggestion-btn { background-color: var(--suggestion-bg); color: var(--text-primary); border: none; width: 100%; text-align: left; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; cursor: pointer; transition: background-color 0.2s var(--timing-function); display: flex; align-items: center; gap: 0.75rem; }
         .suggestion-btn:hover { background-color: var(--suggestion-bg-hover); }
@@ -157,7 +239,8 @@
         <symbol id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
         <symbol id="icon-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
         <symbol id="icon-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></symbol>
-        <symbol id="icon-sparkles" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3L9.27 9.27L3 12l6.27 2.73L12 21l2.73-6.27L21 12l-6.27-2.73z"/></symbol>
+        <symbol id="icon-sparkles" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L9.27 9.27L3 12l6.27 2.73L12 21l2.73-6.27L21 12l-6.27-2.73z"/></symbol>
+        <symbol id="icon-select-area" viewBox="0 0 24 24" fill="currentColor"><path d="M17 15h2V7c0-1.1-.9-2-2-2h-8v2h8v8zM7 17V1H5v4H1v2h4v10c0 1.1.9 2 2 2h10v4h2v-4h4v-2H7z"/></symbol>
         <symbol id="icon-linkedin" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></symbol>
         <symbol id="icon-twitter" viewBox="0 0 24 24" fill="currentColor"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616v.064c0 2.298 1.634 4.212 3.793 4.649-.65.177-1.354.23-2.067.087.616 1.9 2.396 3.281 4.5 3.315-2.056 1.623-4.596 2.45-7.221 2.054 2.146 1.373 4.69 2.16 7.34 2.16 8.517 0 13.18-7.058 13.18-13.18 0-.201 0-.402-.013-.602.9-.648 1.68-1.46 2.304-2.393z"/></symbol>
     </svg>
@@ -165,13 +248,36 @@
     <div class="split-view-container">
         <!-- Dummy Browser View -->
         <div class="dummy-browser">
-            <div class="browser-toolbar">
-                <div class="window-dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
-                <input type="text" class="address-bar" value="https://nordsym.salesforce.com/lightning/r/Opportunity/0068e00000...">
+            <div class="browser-header">
+                <div class="browser-tabs">
+                    <div class="browser-tab active">
+                        <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><use href="#icon-flow"></use></svg>
+                        FlowNode - Automate Everything
+                    </div>
+                    <div class="browser-tab">
+                        <img src="https://i.imgur.com/72011vj.png" class="tab-icon" alt="Salesforce icon">
+                        Salesforce Opportunity
+                    </div>
+                </div>
+                <div class="browser-toolbar">
+                    <div class="window-dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
+                    <input type="text" class="address-bar" value="https://www.flownode.ai">
+                </div>
             </div>
             <div class="dummy-content">
-                <pre id="page-content" style="display:none;">Salesforce Opportunity Closed Won. Deal: QuantumLeap AI. Amount: $250,000. Manager: Anna Berg.</pre>
+                <div class="product-page">
+                    <h1>Automatisering, direkt i din webbläsare.</h1>
+                    <p class="subtitle">FlowNode är ett Chrome-tillägg som låter dig koppla samman dina favoritappar som Salesforce, Jira och Slack utan en enda rad kod. Säg hejdå till krångliga API-nycklar och hej till sömlösa arbetsflöden.</p>
+                    
+                    <h3>Gå med på vår väntelista</h3>
+                    <form class="waitlist-form" onsubmit="event.preventDefault(); this.innerHTML = '<p style=\'color: var(--status-green-text); font-weight: 500;\'>Tack! Du är nu på väntelistan.</p>';">
+                        <input type="email" placeholder="din.mejl@foretag.se" class="waitlist-input" required>
+                        <button type="submit" class="waitlist-button">Skriv upp mig</button>
+                    </form>
+                </div>
+                <pre id="page-content" style="display:none;">FlowNode Landing Page. H1: Automatisering, direkt i din webbläsare. Subtitle: FlowNode är ett Chrome-tillägg som låter dig koppla samman dina favoritappar utan kod.</pre>
             </div>
+            <div id="selection-simulation-overlay" class="selection-overlay" style="display: none;"></div>
         </div>
 
         <!-- FlowNode Sidebar -->
@@ -180,6 +286,7 @@
             <div id="chat-view" class="view-container">
                 <div class="sidebar-header">
                     <div class="sidebar-title">
+                        <img src="https://raw.githubusercontent.com/GusHem/NordSym-Logga/refs/heads/main/Gra%CC%88vling%20flownode%20avatar.svg" alt="FlowNode Avatar" class="sidebar-avatar">
                         <h2 class="sidebar-title-text" id="active-flow-title-chat"></h2>
                         <span class="version-badge">v12.0</span>
                     </div>
@@ -195,8 +302,9 @@
                     <div class="chat-input-area" id="chat-input-area">
                         <div id="contextual-suggestions"></div>
                         <div class="chat-input-bar">
-                            <button class="chat-action-btn secondary" id="analyze-page-btn" title="Analysera Sida"><svg><use href="#icon-sparkles"></use></svg></button>
-                            <textarea id="chat-input" placeholder="Fråga om sidan, eller 'Skapa flöde: ...'" rows="1"></textarea>
+                            <button class="chat-action-btn secondary" id="select-area-btn" title="Välj ett område att analysera"><svg><use href="#icon-select-area"></use></svg></button>
+                            <button class="chat-action-btn secondary" id="analyze-page-btn" title="Analysera Hela Sidan"><svg><use href="#icon-sparkles"></use></svg></button>
+                            <textarea id="chat-input" placeholder="Skriv ett meddelande..." rows="1"></textarea>
                             <button id="chat-send-btn" class="chat-action-btn primary" title="Skicka">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                             </button>
@@ -208,7 +316,10 @@
             <!-- Other Views -->
             <div id="canvas-view" class="view-container">
                  <div class="sidebar-header">
-                    <div class="sidebar-title"><h2 class="sidebar-title-text" id="active-flow-title-canvas"></h2></div>
+                    <div class="sidebar-title">
+                        <img src="https://raw.githubusercontent.com/GusHem/NordSym-Logga/refs/heads/main/Gra%CC%88vling%20flownode%20avatar.svg" alt="FlowNode Avatar" class="sidebar-avatar">
+                        <h2 class="sidebar-title-text" id="active-flow-title-canvas"></h2>
+                    </div>
                     <div class="header-actions"><button class="header-btn" id="show-chat-btn-canvas" title="Visa chatt"><svg><use href="#icon-chat"></use></svg></button></div>
                  </div>
                  <div class="workflow-canvas-container"><svg id="workflow-svg-layer" style="position:absolute; top:0; left:0; width:100%; height:100%;"></svg><div id="workflow-canvas" style="position:absolute;"></div></div>
@@ -264,7 +375,9 @@
                 showChatBtnLibrary: document.getElementById('show-chat-btn-library'), showChatBtnTeam: document.getElementById('show-chat-btn-team'),
                 showChatBtnFlows: document.getElementById('show-chat-btn-flows'), createFlowBtn: document.getElementById('create-flow-btn'),
                 flowsList: document.getElementById('flows-list'), toolLibraryContainer: document.getElementById('tool-library-container'),
-                toolSearchInput: document.getElementById('tool-search-input'), teamViewContainer: document.getElementById('team-view-container')
+                toolSearchInput: document.getElementById('tool-search-input'), teamViewContainer: document.getElementById('team-view-container'),
+                selectAreaBtn: document.getElementById('select-area-btn'),
+                selectionOverlay: document.getElementById('selection-simulation-overlay')
             };
             
             await State.load();
@@ -288,6 +401,26 @@
             document.querySelectorAll('#show-chat-btn-canvas, #show-chat-btn-library, #show-chat-btn-team, #show-chat-btn-flows').forEach(btn => {
                 if(btn) btn.onclick = () => this.setView('chat');
             });
+            this.elements.selectAreaBtn.onclick = () => this.simulateAreaSelection();
+        },
+
+        simulateAreaSelection() {
+            this.elements.chatMessages.querySelector(".welcome-placeholder")?.remove();
+            const overlay = this.elements.selectionOverlay;
+            if (!overlay) return;
+
+            overlay.style.display = 'flex';
+
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                this.addMessage({ 
+                    sender: 'bot', 
+                    content: { 
+                        type: 'text', 
+                        value: 'Område valt! Nu kan du ställa specifika frågor om det, som "sammanfatta texten i området" eller "hämta e-postadressen".' 
+                    } 
+                });
+            }, 2800); // Match animation duration
         },
         
         renderAll() {
@@ -318,9 +451,10 @@
     };
     
     // Full stubs for brevity
-    GeminiService.interpretQuery=async function(t){await new Promise(r=>setTimeout(r,200));const e=["skapa flöde","automatisera","regel:","när "];return e.some(n=>t.toLowerCase().startsWith(n))?{intent:"BUILD_WORKFLOW",command:t}:{intent:"CHAT",query:t}};GeminiService.buildWorkflow=async function(t){await new Promise(r=>setTimeout(r,1e3));const e=t.toLowerCase();return e.includes("salesforce")&&e.includes("slack")?{success:!0,workflow:{nodes:[{id:"n1",variantId:"salesforce-deal-won",position:{x:50,y:150}},{id:"n2",variantId:"slack-send-message",position:{x:350,y:150}}],connections:[{from:"n1",to:"n2"}]}}:{success:!1,reason:"Förstod ej flödet."}};GeminiService.chatAboutContext=async function(t,e){await new Promise(r=>setTimeout(r,800));const n=t.toLowerCase(),o=e.toLowerCase();if(n.includes("värde")){const s=o.match(/\$(\d{1,3}(,\d{3})*(\.\d+)?)/);return{success:!0,answer:s?`Värdet är ${s[0]}.`:"Hittade ej värde."}}return n.includes("ansvarig")?(console.log(o),{success:!0,answer:"Ansvarig är Anna Berg."}):{success:!0,answer:"Det var en intressant fråga!"}};GeminiService.suggestFromContext=async function(t){await new Promise(r=>setTimeout(r,1e3));return t.toLowerCase().includes("salesforce")?{success:!0,title:"Förslag för sidan:",suggestions:[{label:"Meddela #sales-wins i Slack",command:"Skapa flöde: När en deal vinns, skicka till Slack."}]}:{success:!1}};State.users=[{id:"u1",name:"You",avatar:"https://i.pravatar.cc/40?u=user1",role:"Admin",online:!0,socials:{linkedin:"#",twitter:"#"}},{id:"u2",name:"Anna Berg",avatar:"https://i.pravatar.cc/40?u=user2",role:"Sales Lead",online:!0,socials:{linkedin:"#",twitter:"#"}},{id:"u3",name:"Karl Nilsson",avatar:"https://i.pravatar.cc/40?u=user3",role:"Developer",online:!1,socials:{linkedin:"#",twitter:"#"}},{id:"u4",name:"Sofia Lund",avatar:"https://i.pravatar.cc/40?u=user4",role:"Marketing",online:!0,socials:{linkedin:"#",twitter:"#"}}];State.theme="light";State.activeFlowId="flow1";State.flows=[{id:"flow1",name:"Salesforce Onboarding",nodes:[],connections:[]}];State.tools={"Project Management":[{id:"jira",name:"Jira",iconBg:"#0052CC",connected:!0},{id:"asana",name:"Asana",iconBg:"#273347",connected:!1},{id:"trello",name:"Trello",iconBg:"#0079BF",connected:!0},{id:"notion",name:"Notion",iconBg:"#000000",connected:!1},{id:"monday",name:"Monday.com",iconBg:"#FF1A5A",connected:!1}],Development:[{id:"github",name:"GitHub",iconBg:"#181717",connected:!0},{id:"gitlab",name:"GitLab",iconBg:"#FC6D26",connected:!1},{id:"bitbucket",name:"Bitbucket",iconBg:"#0052CC",connected:!1},{id:"datadog",name:"Datadog",iconBg:"#632CA6",connected:!0}],"Sales & CRM":[{id:"salesforce",name:"Salesforce",iconBg:"#00A1E0",connected:!0},{id:"hubspot",name:"HubSpot",iconBg:"#FF7A59",connected:!1},{id:"pipedrive",name:"Pipedrive",iconBg:"#2D883D",connected:!1}],Communication:[{id:"slack",name:"Slack",iconBg:"#4A154B",connected:!1},{id:"discord",name:"Discord",iconBg:"#5865F2",connected:!0},{id:"msteams",name:"MS Teams",iconBg:"#6264A7",connected:!1}],"Documents & Files":[{id:"gsheets",name:"Google Sheets",iconBg:"#188038",connected:!0},{id:"gdrive",name:"Google Drive",iconBg:"#4285F4",connected:!1},{id:"dropbox",name:"Dropbox",iconBg:"#0061FF",connected:!1}]};State.load=async function(){};State.save=async function(){};App.handleUserMessage=async function(){const t=this.elements.chatInput.value.trim();if(!t)return;this.elements.chatMessages.querySelector(".welcome-placeholder")?.remove(),this.addMessage({sender:"user",content:{type:"text",value:t}}),this.elements.chatInput.value="",this.elements.contextualSuggestions.innerHTML="";const e=this.addMessage({sender:"bot",content:{type:"loading"}}),n=await GeminiService.interpretQuery(t);if("BUILD_WORKFLOW"===n.intent){const o=await GeminiService.buildWorkflow(n.command);if(this.removeMessage(e.id),o.success){const s=this.getActiveFlow();s&&(s.nodes=o.workflow.nodes,s.connections=o.workflow.connections,await State.save(),this.addMessage({sender:"bot",content:{type:"text",value:"OK, jag har skapat flödet."}}),this.renderAll(),setTimeout(()=>this.setView("canvas"),500))}else this.addMessage({sender:"bot",content:{type:"text",value:o.reason}})}else{const a=this.elements.pageContent.textContent,i=await GeminiService.chatAboutContext(n.query,a);this.removeMessage(e.id),i.success&&this.addMessage({sender:"bot",content:{type:"text",value:i.answer}})}};App.fetchAndShowSuggestions=async function(){this.elements.chatMessages.querySelector(".welcome-placeholder")?.remove();const t=this.addMessage({sender:"bot",content:{type:"loading"}}),e=this.elements.pageContent.textContent,n=await GeminiService.suggestFromContext(e);this.removeMessage(t.id),n.success?this.renderSuggestions(n.title,n.suggestions):this.addMessage({sender:"bot",content:{type:"text",value:"Hittade inga förslag."}})};App.renderSuggestions=function(t,e){let n=`<div class="suggestion-card-container"><p style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.25rem;">${t}</p>`;e.forEach(o=>{n+=`<button class="suggestion-btn" data-command="${o.command}">${o.label}</button>`}),n+="</div>",this.elements.contextualSuggestions.innerHTML=n,this.elements.contextualSuggestions.querySelectorAll(".suggestion-btn").forEach(s=>{s.onclick=()=>{this.elements.chatInput.value=s.dataset.command,this.handleUserMessage()}})};App.addMessage=function(t){const e=`msg-${Date.now()}`,n=document.createElement("div"),o=t.sender==="user"?"user-message":"bot-message";n.className=`chat-message ${o}`,n.id=e;let s;s="loading"===t.content.type?"...":t.content.value,n.innerHTML=`<div class="message-bubble">${s}</div>`,this.elements.chatMessages.appendChild(n),this.elements.chatMessages.scrollTop=this.elements.chatMessages.scrollHeight;return{id:e}};App.removeMessage=function(t){document.getElementById(t)?.remove()};App.setView=function(t){this.elements.sidebar.className="flownode-sidebar",State.theme==="dark"&&this.elements.sidebar.classList.add("dark"),"chat"!==t&&this.elements.sidebar.classList.add(`${t}-active`),"flows"===t&&this.renderFlowsList()};App.createNewFlow=function(){const t={id:`flow_${Date.now()}`,name:"Namnlöst flöde",nodes:[],connections:[]};State.flows.push(t),State.activeFlowId=t.id,this.renderAll(),this.setView("chat")};App.setActiveFlow=function(t){State.activeFlowId=t,this.renderAll(),this.setView("chat")};App.renderFlowsList=function(){const t=this.elements.flowsList;t&&(t.innerHTML=State.flows.map(e=>`<div class="flow-card ${e.id===State.activeFlowId?"active":""}" data-flow-id="${e.id}"><span>${e.name}</span></div>`).join(""),t.querySelectorAll(".flow-card").forEach(n=>{n.onclick=()=>this.setActiveFlow(n.dataset.flowId)}))};App.renderToolLibrary=function(){const t=this.elements.toolLibraryContainer,e=this.elements.toolSearchInput.value.toLowerCase();let n="";for(const o in State.tools){const s=State.tools[o].filter(a=>a.name.toLowerCase().includes(e));s.length>0&&(n+=`<div class="tool-category"><h3>${o}</h3><div class="tool-grid">`,s.forEach(i=>{n+=` <div class="tool-card" data-tool-id="${i.id}"> <div class="tool-icon" style="background-color: ${i.iconBg};">${i.name.charAt(0)}</div> <div class="tool-name">${i.name} <span class="status-dot ${i.connected?"connected":""}"></span></div> </div> `}),n+="</div></div>")}t.innerHTML=n};App.renderTeamView=function(){const t=this.elements.teamViewContainer;t&&(t.innerHTML=` <div class="team-member-list">${State.users.map(e=>` <div class="team-member-card"> <div class="member-info"> <div class="member-avatar" style="background-image: url(${e.avatar})"> <div class="online-indicator ${e.online?"online":""}"></div> </div> <div class="member-details"> <div class="name">${e.name} ${"u1"===e.id?"(You)":""}</div> <div class="role">${e.role}</div> </div> </div> <div class="member-socials"> <a href="${e.socials.linkedin}" target="_blank" title="LinkedIn"><svg><use href="#icon-linkedin"></use></svg></a> <a href="${e.socials.twitter}" target="_blank" title="Twitter"><svg><use href="#icon-twitter"></use></svg></a> </div> </div> `).join("")}</div> <div class="invite-section"> <h3>Bjud in teammedlem</h3> <div class="invite-bar"> <input type="email" class="invite-input" id="invite-email-input" placeholder="kollega@foretag.se"> <button class="invite-btn" id="invite-btn">Bjud in</button> </div> </div>`)};
+    GeminiService.interpretQuery=async function(t){await new Promise(r=>setTimeout(r,200));const e=["skapa flöde","automatisera","regel:","när "];return e.some(n=>t.toLowerCase().startsWith(n))?{intent:"BUILD_WORKFLOW",command:t}:{intent:"CHAT",query:t}};GeminiService.buildWorkflow=async function(t){await new Promise(r=>setTimeout(r,1e3));const e=t.toLowerCase();return e.includes("salesforce")&&e.includes("slack")?{success:!0,workflow:{nodes:[{id:"n1",variantId:"salesforce-deal-won",position:{x:50,y:150}},{id:"n2",variantId:"slack-send-message",position:{x:350,y:150}}],connections:[{from:"n1",to:"n2"}]}}:{success:!1,reason:"Förstod ej flödet."}};GeminiService.chatAboutContext=async function(t,e){await new Promise(r=>setTimeout(r,800));const n=t.toLowerCase(),o=e.toLowerCase();if(n.includes("värde")){const s=o.match(/\$(\d{1,3}(,\d{3})*(\.\d+)?)/);return{success:!0,answer:s?`Värdet är ${s[0]}.`:"Hittade ej värde."}}return n.includes("ansvarig")?(console.log(o),{success:!0,answer:"Ansvarig är Anna Berg."}):{success:!0,answer:"Det var en intressant fråga!"}};GeminiService.suggestFromContext=async function(t){await new Promise(r=>setTimeout(r,1e3));return t.toLowerCase().includes("flownode landing page")?{success:!0,title:"Förslag för sidan:",suggestions:[{label:"Skapa ett välkomstflöde för nya användare",command:"Skapa flöde: När en ny användare skriver upp sig, skicka ett välkomstmejl och lägg till i CRM."}]}:{success:!1}};State.users=[{id:"u1",name:"You",avatar:"https://i.pravatar.cc/40?u=user1",role:"Admin",online:!0,socials:{linkedin:"#",twitter:"#"}},{id:"u2",name:"Anna Berg",avatar:"https://i.pravatar.cc/40?u=user2",role:"Sales Lead",online:!0,socials:{linkedin:"#",twitter:"#"}},{id:"u3",name:"Karl Nilsson",avatar:"https://i.pravatar.cc/40?u=user3",role:"Developer",online:!1,socials:{linkedin:"#",twitter:"#"}},{id:"u4",name:"Sofia Lund",avatar:"https://i.pravatar.cc/40?u=user4",role:"Marketing",online:!0,socials:{linkedin:"#",twitter:"#"}}];State.theme="light";State.activeFlowId="flow1";State.flows=[{id:"flow1",name:"Nytt Säljflöde",nodes:[],connections:[]}];State.tools={"Project Management":[{id:"jira",name:"Jira",iconBg:"#0052CC",connected:!0},{id:"asana",name:"Asana",iconBg:"#273347",connected:!1},{id:"trello",name:"Trello",iconBg:"#0079BF",connected:!0},{id:"notion",name:"Notion",iconBg:"#000000",connected:!1},{id:"monday",name:"Monday.com",iconBg:"#FF1A5A",connected:!1}],Development:[{id:"github",name:"GitHub",iconBg:"#181717",connected:!0},{id:"gitlab",name:"GitLab",iconBg:"#FC6D26",connected:!1},{id:"bitbucket",name:"Bitbucket",iconBg:"#0052CC",connected:!1},{id:"datadog",name:"Datadog",iconBg:"#632CA6",connected:!0}],"Sales & CRM":[{id:"salesforce",name:"Salesforce",iconBg:"#00A1E0",connected:!0},{id:"hubspot",name:"HubSpot",iconBg:"#FF7A59",connected:!1},{id:"pipedrive",name:"Pipedrive",iconBg:"#2D883D",connected:!1}],Communication:[{id:"slack",name:"Slack",iconBg:"#4A154B",connected:!1},{id:"discord",name:"Discord",iconBg:"#5865F2",connected:!0},{id:"msteams",name:"MS Teams",iconBg:"#6264A7",connected:!1}],"Documents & Files":[{id:"gsheets",name:"Google Sheets",iconBg:"#188038",connected:!0},{id:"gdrive",name:"Google Drive",iconBg:"#4285F4",connected:!1},{id:"dropbox",name:"Dropbox",iconBg:"#0061FF",connected:!1}]};State.load=async function(){};State.save=async function(){};App.handleUserMessage=async function(){const t=this.elements.chatInput.value.trim();if(!t)return;this.elements.chatMessages.querySelector(".welcome-placeholder")?.remove(),this.addMessage({sender:"user",content:{type:"text",value:t}}),this.elements.chatInput.value="",this.elements.contextualSuggestions.innerHTML="";const e=this.addMessage({sender:"bot",content:{type:"loading"}}),n=await GeminiService.interpretQuery(t);if("BUILD_WORKFLOW"===n.intent){const o=await GeminiService.buildWorkflow(n.command);if(this.removeMessage(e.id),o.success){const s=this.getActiveFlow();s&&(s.nodes=o.workflow.nodes,s.connections=o.workflow.connections,await State.save(),this.addMessage({sender:"bot",content:{type:"text",value:"OK, jag har skapat flödet."}}),this.renderAll(),setTimeout(()=>this.setView("canvas"),500))}else this.addMessage({sender:"bot",content:{type:"text",value:o.reason}})}else{const a=this.elements.pageContent.textContent,i=await GeminiService.chatAboutContext(n.query,a);this.removeMessage(e.id),i.success&&this.addMessage({sender:"bot",content:{type:"text",value:i.answer}})}};App.fetchAndShowSuggestions=async function(){this.elements.chatMessages.querySelector(".welcome-placeholder")?.remove();const t=this.addMessage({sender:"bot",content:{type:"loading"}}),e=this.elements.pageContent.textContent,n=await GeminiService.suggestFromContext(e);this.removeMessage(t.id),n.success?this.renderSuggestions(n.title,n.suggestions):this.addMessage({sender:"bot",content:{type:"text",value:"Hittade inga förslag."}})};App.renderSuggestions=function(t,e){let n=`<div class="suggestion-card-container"><p style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.25rem;">${t}</p>`;e.forEach(o=>{n+=`<button class="suggestion-btn" data-command="${o.command}">${o.label}</button>`}),n+="</div>",this.elements.contextualSuggestions.innerHTML=n,this.elements.contextualSuggestions.querySelectorAll(".suggestion-btn").forEach(s=>{s.onclick=()=>{this.elements.chatInput.value=s.dataset.command,this.handleUserMessage()}})};App.addMessage=function(t){const e=`msg-${Date.now()}`,n=document.createElement("div"),o=t.sender==="user"?"user-message":"bot-message";n.className=`chat-message ${o}`,n.id=e;let s;s="loading"===t.content.type?"...":t.content.value,n.innerHTML=`<div class="message-bubble">${s}</div>`,this.elements.chatMessages.appendChild(n),this.elements.chatMessages.scrollTop=this.elements.chatMessages.scrollHeight;return{id:e}};App.removeMessage=function(t){document.getElementById(t)?.remove()};App.setView=function(t){this.elements.sidebar.className="flownode-sidebar",State.theme==="dark"&&this.elements.sidebar.classList.add("dark"),"chat"!==t&&this.elements.sidebar.classList.add(`${t}-active`),"flows"===t&&this.renderFlowsList()};App.createNewFlow=function(){const t={id:`flow_${Date.now()}`,name:"Namnlöst flöde",nodes:[],connections:[]};State.flows.push(t),State.activeFlowId=t.id,this.renderAll(),this.setView("chat")};App.setActiveFlow=function(t){State.activeFlowId=t,this.renderAll(),this.setView("chat")};App.renderFlowsList=function(){const t=this.elements.flowsList;t&&(t.innerHTML=State.flows.map(e=>`<div class="flow-card ${e.id===State.activeFlowId?"active":""}" data-flow-id="${e.id}"><span>${e.name}</span></div>`).join(""),t.querySelectorAll(".flow-card").forEach(n=>{n.onclick=()=>this.setActiveFlow(n.dataset.flowId)}))};App.renderToolLibrary=function(){const t=this.elements.toolLibraryContainer,e=this.elements.toolSearchInput.value.toLowerCase();let n="";for(const o in State.tools){const s=State.tools[o].filter(a=>a.name.toLowerCase().includes(e));s.length>0&&(n+=`<div class="tool-category"><h3>${o}</h3><div class="tool-grid">`,s.forEach(i=>{n+=` <div class="tool-card" data-tool-id="${i.id}"> <div class="tool-icon" style="background-color: ${i.iconBg};">${i.name.charAt(0)}</div> <div class="tool-name">${i.name} <span class="status-dot ${i.connected?"connected":""}"></span></div> </div> `}),n+="</div></div>")}t.innerHTML=n};App.renderTeamView=function(){const t=this.elements.teamViewContainer;t&&(t.innerHTML=` <div class="team-member-list">${State.users.map(e=>` <div class="team-member-card"> <div class="member-info"> <div class="member-avatar" style="background-image: url(${e.avatar})"> <div class="online-indicator ${e.online?"online":""}"></div> </div> <div class="member-details"> <div class="name">${e.name} ${"u1"===e.id?"(You)":""}</div> <div class="role">${e.role}</div> </div> </div> <div class="member-socials"> <a href="${e.socials.linkedin}" target="_blank" title="LinkedIn"><svg><use href="#icon-linkedin"></use></svg></a> <a href="${e.socials.twitter}" target="_blank" title="Twitter"><svg><use href="#icon-twitter"></use></svg></a> </div> </div> `).join("")}</div> <div class="invite-section"> <h3>Bjud in teammedlem</h3> <div class="invite-bar"> <input type="email" class="invite-input" id="invite-email-input" placeholder="kollega@foretag.se"> <button class="invite-btn" id="invite-btn">Bjud in</button> </div> </div>`)};
     document.addEventListener('DOMContentLoaded', () => App.init());
     </script>
 </body>
 </html>
+
 
