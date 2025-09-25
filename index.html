@@ -21,6 +21,7 @@
             --status-red: #ef4444; --status-yellow: #f59e0b; --status-green: #22c55e;
             --status-green-bg: #ecfdf5; --status-green-text: #065f46;
             --status-gray-bg: #f3f4f6; --status-gray-text: #374151;
+            --code-bg: #e5e7eb;
         }
 
         .flownode-sidebar.dark {
@@ -30,6 +31,7 @@
             --suggestion-bg: #374151; --suggestion-bg-hover: #4b5563;
             --status-green-bg: #064e3b; --status-green-text: #d1fae5;
             --status-gray-bg: #374151; --status-gray-text: #d1d5db;
+            --code-bg: #374151;
         }
 
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -65,8 +67,9 @@
             color: var(--text-secondary);
             position: relative;
             top: 1px;
-            cursor: default;
+            cursor: pointer;
             opacity: 0.7;
+            transition: all 0.2s;
         }
         .flownode-sidebar.dark .browser-tab { background-color: #4b5563; border-color: #6b7280; }
         .tab-icon { width: 16px; height: 16px; }
@@ -89,57 +92,68 @@
         .window-dots { display: flex; gap: 0.5rem; }
         .dot { width: 12px; height: 12px; border-radius: 50%; }
         .dot.red { background-color: #ff5f57; } .dot.yellow { background-color: #febc2e; } .dot.green { background-color: #28c840; }
-        .address-bar { flex-grow: 1; background-color: var(--bg-tertiary); color: var(--text-secondary); border-radius: 6px; padding: 0.5rem 1rem; margin: 0 1rem; font-size: 0.9rem; text-align: left; border: none; }
-        .dummy-content { padding: 2rem; overflow-y: auto; flex-grow: 1; background: #fff;}
+        #address-bar { flex-grow: 1; background-color: var(--bg-tertiary); color: var(--text-secondary); border-radius: 6px; padding: 0.5rem 1rem; margin: 0 1rem; font-size: 0.9rem; text-align: left; border: none; }
+        .dummy-content { padding: 2rem; overflow-y: auto; flex-grow: 1; background: #fff; position: relative; }
+        .dummy-page {
+            opacity: 1;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .dummy-page.hidden {
+            display: none;
+            opacity: 0;
+        }
         
         /* --- Selection Simulation --- */
         .selection-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(79, 70, 229, 0.1);
+            background-color: rgba(79, 70, 229, 0.05);
             z-index: 1000;
-            cursor: crosshair;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1rem;
-            font-weight: 500;
+            pointer-events: none;
         }
-        .selection-overlay::before { /* Instructional text */
-            content: 'Klicka och dra för att välja ett område';
-            background-color: var(--accent-color);
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            animation: fade-in-out-text 2.8s forwards;
-        }
-        .selection-overlay::after { /* The animated selection box */
-            content: '';
+        .selection-box {
             position: absolute;
-            top: 45%; left: 30%;
-            width: 0; height: 0;
             border: 2px dashed var(--accent-color);
             background-color: rgba(79, 70, 229, 0.2);
-            animation: draw-selection-box 1.5s 0.5s forwards ease-in-out;
+            border-radius: 4px;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        @keyframes draw-selection-box { to { width: 40%; height: 20%; } }
-        @keyframes fade-in-out-text { 0%, 100% { opacity: 0; } 10%, 90% { opacity: 1; } }
 
         /* --- FlowNode Product Page --- */
-        .product-page { max-width: 700px; margin: 2rem auto; text-align: center; color: var(--text-primary); }
-        .product-page h1 { font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; color: #111827; line-height: 1.2; }
-        .product-page .subtitle { font-size: 1.1rem; color: var(--text-secondary); max-width: 500px; margin: 0 auto 2rem; line-height: 1.6; }
+        .product-page h1, .demo-page h1 { font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; color: #111827; line-height: 1.2; }
+        .product-page .subtitle, .demo-page p { font-size: 1.1rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto 2rem; line-height: 1.6; }
         .product-page h3 { font-size: 1.2rem; font-weight: 600; margin-top: 3rem; margin-bottom: 0.5rem; }
         .waitlist-form { display: flex; gap: 0.5rem; margin-top: 1rem; max-width: 450px; margin-left: auto; margin-right: auto; }
         .waitlist-input { flex-grow: 1; background-color: var(--bg-secondary); border: 1px solid var(--border-color); padding: 0.75rem; border-radius: 6px; font-size: 0.9rem; color: var(--text-primary); }
         .waitlist-button { background-color: var(--accent-color); color: var(--accent-text); border: none; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 500; cursor: pointer; transition: background-color 0.2s; }
         .waitlist-button:hover { opacity: 0.9; }
+        .demo-page, .product-page { max-width: 700px; margin: 2rem auto; text-align: left; position: relative; }
+        .demo-page .meta { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem; }
+        .demo-page code { background-color: var(--bg-tertiary); padding: 2px 4px; border-radius: 4px; font-family: monospace; }
+        .demo-page .status-badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 500; }
+        .demo-page .status-badge.green { background-color: var(--status-green-bg); color: var(--status-green-text); }
+        .demo-page .status-badge.yellow { background-color: #fffbeb; color: #b45309; }
+        .selectable-area { display: inline-block; pointer-events: none; }
+        #flownode-waitlist-wrapper {
+            position: absolute;
+            top: 250px;
+            left: 50%;
+            width: 470px;
+            height: 120px;
+            transform: translateX(-50%);
+        }
 
         .flownode-sidebar {
             width: 420px; min-width: 380px; background-color: var(--bg-secondary);
             border-left: 1px solid var(--border-color); display: flex; flex-direction: column;
             box-shadow: -10px 0 30px var(--shadow-color);
             transition: all 0.3s var(--timing-function);
-            position: relative; overflow: hidden;
+            position: relative; 
+        }
+
+        .views-wrapper {
+            position: relative;
+            flex-grow: 1;
+            overflow: hidden;
         }
         
         /* --- View Switching Logic --- */
@@ -151,13 +165,9 @@
         
         /* --- Header --- */
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); flex-shrink: 0; background-color: var(--bg-secondary); z-index: 5; }
-        .sidebar-title { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
-        .sidebar-avatar { width: 32px; height: 32px; border-radius: 8px; }
-        .sidebar-title-text { font-size: 1.2rem; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .version-badge { font-size: 0.6rem; font-weight: bold; color: var(--accent-color); background-color: var(--bg-tertiary); padding: 2px 5px; border-radius: 4px; margin-left: auto; flex-shrink: 0;}
-        .header-actions { display: flex; align-items: center; gap: 0.5rem; }
-        .collaborators { display: flex; align-items: center; cursor: pointer; }
-        .avatar { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--bg-secondary); margin-left: -10px; background-size: cover; box-shadow: 0 0 0 1px var(--border-color); }
+        .sidebar-title { display: flex; align-items: center; gap: 0.75rem; min-width: 0; flex-grow: 1; }
+        .sidebar-avatar { width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0; }
+        .header-actions { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
         .header-btn { background: none; border: none; color: var(--text-secondary); width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
         .header-btn:hover { color: var(--text-primary); background-color: var(--bg-tertiary); }
         .header-btn svg { width: 20px; height: 20px; }
@@ -165,13 +175,74 @@
         /* --- Chat UI --- */
         .chat-container { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
         .chat-messages { flex-grow: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
-        .welcome-placeholder { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--text-secondary); padding: 2rem; }
-        .welcome-placeholder svg { width: 48px; height: 48px; color: var(--accent-color); opacity: 0.5; margin-bottom: 1rem; }
-        .welcome-placeholder h3 { font-size: 1.1rem; color: var(--text-primary); margin-bottom: 0.25rem; }
+        
+        .welcome-placeholder {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 2rem;
+            gap: 1.5rem;
+        }
+        .welcome-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 24px;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 0 0 8px var(--bg-tertiary);
+        }
+        .welcome-placeholder h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0;
+        }
+        .welcome-placeholder p {
+            max-width: 300px;
+            line-height: 1.6;
+            margin: 0;
+        }
+        .welcome-suggestions {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        .welcome-suggestion-card {
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s var(--timing-function);
+        }
+        .welcome-suggestion-card:hover {
+            border-color: var(--accent-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px var(--shadow-color);
+        }
+        .welcome-suggestion-card strong {
+            display: block;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+        .welcome-suggestion-card span {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
         .chat-message { max-width: 95%; font-size: 0.9rem; line-height: 1.5; opacity: 0; transform: translateY(10px); animation: fade-in 0.5s var(--timing-function) forwards; }
         @keyframes fade-in { to { opacity: 1; transform: translateY(0); } }
         .message-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; }
         .message-bubble { padding: 0.75rem 1rem; border-radius: 12px; }
+        .message-bubble pre { background-color: var(--code-bg); padding: 0.75rem; border-radius: 8px; font-family: monospace; white-space: pre-wrap; word-wrap: break-word; font-size: 0.85rem; }
+        .message-bubble ul { margin-left: 1.2rem; margin-top: 0.5rem; }
         .user-message { align-self: flex-end; } .user-message .message-bubble { background-color: var(--accent-color); color: var(--accent-text); }
         .bot-message { align-self: flex-start; display: flex; align-items: flex-end; gap: 0.75rem; } .bot-message .message-bubble { background-color: var(--bg-tertiary); color: var(--text-primary); }
         .chat-input-area { flex-shrink: 0; padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); background-color: var(--bg-secondary); }
@@ -187,19 +258,39 @@
         .suggestion-btn:hover { background-color: var(--suggestion-bg-hover); }
 
         /* --- Tool Library --- */
-        .library-content { display: flex; flex-direction: column; flex-grow: 1; overflow: hidden; }
-        .library-search { padding: 1rem; border-bottom: 1px solid var(--border-color); }
+        .library-content { display: flex; flex-direction: column; flex-grow: 1; overflow: hidden; padding: 1rem; }
+        .library-search { padding-bottom: 1rem; }
         #tool-search-input { width: 100%; background-color: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.9rem; color: var(--text-primary); }
-        .tool-library-container { flex-grow: 1; overflow-y: auto; padding: 1.5rem; }
-        .tool-category h3 { font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .tool-library-container { flex-grow: 1; overflow-y: auto; }
+        .tool-category h3 { font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; padding-top: 1rem; }
         .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
-        .tool-card { text-align: center; padding: 1.5rem 1rem; border-radius: 12px; border: 1px solid var(--border-color); background-color: var(--bg-secondary); transition: all 0.2s; cursor: pointer; }
-        .tool-card:hover { transform: translateY(-4px); box-shadow: 0 4px 15px var(--shadow-color); }
-        .tool-card .tool-icon { width: 48px; height: 48px; border-radius: 12px; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; color: white; }
-        .tool-card .tool-name { font-weight: 500; color: var(--text-primary); }
+
+        .tool-card-flipper { background-color: transparent; height: 160px; perspective: 1000px; cursor: pointer; }
+        .tool-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+        .tool-card-flipper.is-flipped .tool-card-inner { transform: rotateY(180deg); }
+        .tool-card-front, .tool-card-back {
+            position: absolute; width: 100%; height: 100%;
+            -webkit-backface-visibility: hidden; backface-visibility: hidden;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            border-radius: 12px; border: 1px solid var(--border-color);
+            background-color: var(--bg-secondary);
+        }
+        .tool-card-front { text-align: center; padding: 1.5rem 1rem; }
+        .tool-card-back { transform: rotateY(180deg); padding: 1rem; }
+        .tool-card-front:hover { transform: translateY(-4px); box-shadow: 0 4px 15px var(--shadow-color); transition: all 0.2s; }
+
+        .tool-icon { width: 48px; height: 48px; border-radius: 12px; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; color: white; }
+        .tool-name { font-weight: 500; color: var(--text-primary); }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-left: 0.5rem; }
         .status-dot.connected { background-color: var(--status-green); }
         
+        .tool-card-back h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem; }
+        .api-token-input { width: 100%; border: 1px solid var(--border-color); background-color: var(--bg-tertiary); border-radius: 6px; padding: 0.5rem; font-size: 0.8rem; margin-bottom: 0.75rem; }
+        .connect-btn { width: 100%; border: none; padding: 0.6rem; border-radius: 8px; font-weight: 500; cursor: pointer; transition: background-color 0.2s, color 0.2s; color: white; }
+        .connect-btn.status-green { background-color: var(--status-green); }
+        .connect-btn.status-yellow { background-color: var(--status-yellow); }
+        .connect-btn.status-red { background-color: var(--status-red); }
+
         /* --- Team View --- */
         .team-view-container { flex-grow: 1; overflow-y: auto; padding: 1.5rem; }
         .team-member-list { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
@@ -229,6 +320,7 @@
         .create-flow-btn { width: 100%; border: none; padding: 0.7rem; border-radius: 8px; font-weight: 500; cursor: pointer; background-color: var(--accent-color); color: var(--accent-text); }
         
         /* --- Canvas View --- */
+        #canvas-view { flex-direction: column; }
         .workflow-canvas-container { flex-grow: 1; position: relative; overflow: hidden; background-color: var(--bg-primary); background-image: radial-gradient(var(--border-color) 1px, transparent 1px); background-size: 16px 16px; }
         .flownode-sidebar.dark .workflow-canvas-container { background-image: radial-gradient(#374151 1px, transparent 1px); }
         .workflow-node {
@@ -243,15 +335,40 @@
             gap: 0.75rem;
             width: 220px;
             cursor: grab;
-            opacity: 0;
-            transform: scale(0.9);
-            animation: node-fade-in 0.3s var(--timing-function) forwards;
+            user-select: none;
+            transition: box-shadow 0.2s, border-color 0.2s;
         }
-        @keyframes node-fade-in { to { opacity: 1; transform: scale(1); } }
+        .flow-active .workflow-node { border-color: var(--status-green); box-shadow: 0 0 15px rgba(34, 197, 94, 0.3); }
         .node-icon { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; flex-shrink: 0; }
         .node-label { font-size: 0.9rem; font-weight: 500; color: var(--text-primary); }
-        .connection-line { stroke: var(--text-secondary); stroke-width: 2; fill: none; }
+        .connection-handle {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            width: 12px; height: 12px; background-color: var(--bg-secondary); border: 2px solid var(--text-secondary);
+            border-radius: 50%; cursor: crosshair;
+        }
+        .connection-handle.out { right: -7px; } .connection-handle.in { left: -7px; }
         
+        .connection-line { stroke: var(--text-secondary); stroke-width: 2; fill: none; transition: stroke 0.2s; }
+        .flow-active .connection-line { stroke: var(--status-green); }
+        @keyframes pulse { 0% { stroke-dasharray: 4 4; } 100% { stroke-dasharray: 4 4; stroke-dashoffset: 8; } }
+        .flow-active .connection-line { animation: pulse 1s linear infinite; }
+
+        .canvas-toolbar { position: absolute; bottom: 1rem; left: 50%; transform: translateX(-50%); display: flex; gap: 0.5rem; background-color: var(--bg-secondary); padding: 0.5rem; border-radius: 10px; box-shadow: 0 4px 15px var(--shadow-color); border: 1px solid var(--border-color); }
+        .canvas-tool-btn { background: none; border: none; color: var(--text-secondary); width: 40px; height: 40px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .canvas-tool-btn:hover { color: var(--text-primary); background-color: var(--bg-tertiary); }
+        .canvas-tool-btn.active { background-color: var(--accent-color); color: var(--accent-text); }
+        
+        /* Node Picker Modal */
+        #node-picker-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 100; display: none; align-items: center; justify-content: center; }
+        #node-picker-modal.visible { display: flex; }
+        .node-picker-content { width: 90%; max-width: 700px; max-height: 80vh; background: var(--bg-secondary); border-radius: 12px; display: flex; flex-direction: column; }
+        .node-picker-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); font-weight: 600; }
+        .node-picker-body { overflow-y: auto; padding: 1.5rem; }
+        .node-picker-body .tool-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+        .node-picker-body .tool-card-front { padding: 1rem 0.5rem; height: 120px; }
+        .node-picker-body .tool-icon { width: 40px; height: 40px; }
+        .node-picker-body .tool-card-front:hover { background-color: var(--bg-tertiary); }
+
         /* --- History & Settings Views --- */
         .history-view-container, .settings-view-container { flex-grow: 1; overflow-y: auto; padding: 1.5rem; }
         .view-title { font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1.5rem; }
@@ -278,6 +395,8 @@
         <symbol id="icon-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></symbol>
         <symbol id="icon-history" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v15H6.5A2.5 2.5 0 0 1 4 14.5v-10A2.5 2.5 0 0 1 6.5 2z"></path></symbol>
         <symbol id="icon-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></symbol>
+        <symbol id="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></symbol>
+        <symbol id="icon-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></symbol>
         <symbol id="icon-sparkles" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L9.27 9.27L3 12l6.27 2.73L12 21l2.73-6.27L21 12l-6.27-2.73z"/></symbol>
         <symbol id="icon-select-area" viewBox="0 0 24 24" fill="currentColor"><path d="M17 15h2V7c0-1.1-.9-2-2-2h-8v2h8v8zM7 17V1H5v4H1v2h4v10c0 1.1.9 2 2 2h10v4h2v-4h4v-2H7z"/></symbol>
         <symbol id="icon-linkedin" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></symbol>
@@ -288,56 +407,71 @@
         <!-- Dummy Browser View -->
         <div class="dummy-browser">
             <div class="browser-header">
-                <div class="browser-tabs">
-                    <div class="browser-tab active">
-                        <img src="https://raw.githubusercontent.com/GusHem/NordSym-Logga/refs/heads/main/Final%20logo%20no%20text.svg" class="tab-icon" alt="Nordsym logo">
-                        FlowNode - Automate Everything
-                    </div>
-                    <div class="browser-tab">
-                        <img src="https://i.imgur.com/72011vj.png" class="tab-icon" alt="Salesforce icon">
-                        Salesforce Opportunity
-                    </div>
-                </div>
+                <div class="browser-tabs" id="browser-tabs"></div>
                 <div class="browser-toolbar">
                     <div class="window-dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
-                    <input type="text" class="address-bar" value="https://www.flownode.ai">
+                    <input type="text" id="address-bar" value="https://www.flownode.ai">
                 </div>
             </div>
-            <div class="dummy-content">
-                <div class="product-page">
+            <div class="dummy-content" id="dummy-content">
+                <div id="page-flownode" class="dummy-page product-page">
+                    <div class="selectable-area" id="flownode-waitlist-wrapper" data-context-type="waitlist"></div>
                     <h1>Automatisering, direkt i din webbläsare.</h1>
-                    <p class="subtitle">FlowNode är ett Chrome-tillägg som låter dig koppla samman dina favoritappar som Salesforce, Jira och Slack utan en enda rad kod. Säg hejdå till krångliga API-nycklar och hej till sömlösa arbetsflöden.</p>
-                    
+                    <p class="subtitle">FlowNode är ett Chrome-tillägg som låter dig koppla samman dina favoritappar som Salesforce, Jira och Slack utan en enda rad kod.</p>
                     <h3>Gå med på vår väntelista</h3>
                     <form class="waitlist-form" action="https://formspree.io/f/xeorolle" method="POST">
                         <input type="email" name="email" placeholder="din.mejl@foretag.se" class="waitlist-input" required>
                         <button type="submit" class="waitlist-button">Skriv upp mig</button>
                     </form>
+                    <div style="margin-top: 3rem; text-align: center; border-top: 1px solid var(--border-color); padding-top: 2rem;">
+                        <h4 style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">Utforska den interaktiva demon</h4>
+                        <p class="subtitle" style="font-size: 0.9rem; margin-bottom: 0;">Detta är en fullt interaktiv simulering av FlowNode. Klicka på flikarna ovan för att byta webbplats och se hur assistenten anpassar sig. Använd sedan chattfönstret för att se hur du kan automatisera uppgifter med bara ord.</p>
+                    </div>
+                    <pre class="page-context" style="display:none;">Context: FlowNode Landing Page.</pre>
                 </div>
-                <pre id="page-content" style="display:none;">FlowNode Landing Page. H1: Automatisering, direkt i din webbläsare. Subtitle: FlowNode är ett Chrome-tillägg som låter dig koppla samman dina favoritappar utan kod.</pre>
+                <div id="page-salesforce" class="dummy-page demo-page hidden">
+                    <h1>Affärsmöjlighet: MegaCorp Enterprise Deal</h1>
+                    <p class="meta">Ansvarig: Anna Berg • Värde: <span class="selectable-area" data-context-type="value">1 200 000 SEK</span> • Stadium: <span class="status-badge yellow">Förhandling</span></p>
+                    <p>Detta är en högvärdesaffär med MegaCorp för vår Enterprise-plan...</p>
+                    <pre class="page-context" style="display:none;">Context: Salesforce Opportunity page for "MegaCorp Enterprise Deal", value 1.2M SEK, stage Negotiation.</pre>
+                </div>
+                <div id="page-jira" class="dummy-page demo-page hidden">
+                    <h1>[BUG] Användare kan inte logga in med SSO</h1>
+                    <p class="meta">Ticket: <code>JIRA-123</code> • Rapportör: Karl Nilsson • Prioritet: <span class="selectable-area" data-context-type="priority"><span class="status-badge green">Hög</span></span></p>
+                    <p>Användare som försöker logga in via Google SSO får ett 500-fel...</p>
+                    <pre class="page-context" style="display:none;">Context: Jira ticket JIRA-123 about a high-priority SSO login bug.</pre>
+                </div>
+                <div id="page-blog" class="dummy-page demo-page hidden">
+                    <h1>Framtiden för AI i automatisering</h1>
+                    <p class="meta">Publicerad: 25 sep, 2025 • <span class="selectable-area" data-context-type="author">Av: Sofia Lund</span></p>
+                    <p>Artificiell intelligens är inte längre science fiction...</p>
+                    <pre class="page-context" style="display:none;">Context: Blog post about the future of AI in automation.</pre>
+                </div>
             </div>
-            <div id="selection-simulation-overlay" class="selection-overlay" style="display: none;"></div>
+            <div id="selection-simulation-overlay" class="selection-overlay" style="display: none;">
+                <div id="selection-box" class="selection-box"></div>
+            </div>
         </div>
 
         <!-- FlowNode Sidebar -->
         <div class="flownode-sidebar" id="flownode-sidebar">
-            <!-- VIEW 1: CHAT -->
-            <div id="chat-view" class="view-container">
-                <div class="sidebar-header">
-                    <div class="sidebar-title">
-                        <img src="https://raw.githubusercontent.com/GusHem/NordSym-Logga/refs/heads/main/Gra%CC%88vling%20flownode%20avatar.svg" alt="FlowNode Avatar" class="sidebar-avatar">
-                        <h2 class="sidebar-title-text">FlowNode</h2>
-                    </div>
-                    <div class="header-actions">
-                        <button class="header-btn" id="show-flows-btn" title="Mina Flöden"><svg><use href="#icon-folder"></use></svg></button>
-                        <button class="header-btn" id="show-library-btn" title="Verktygsbibliotek"><svg><use href="#icon-grid"></use></svg></button>
-                        <button class="header-btn" id="show-team-btn" title="Team & Socials"><svg><use href="#icon-users"></use></svg></button>
-                        <button class="header-btn" id="show-history-btn" title="Chatthistorik"><svg><use href="#icon-history"></use></svg></button>
-                        <button class="header-btn" id="show-settings-btn" title="Inställningar"><svg><use href="#icon-settings"></use></svg></button>
-                        <button class="header-btn" id="theme-toggle-btn" title="Växla tema"><svg id="theme-icon"><use href="#icon-sun"></use></svg></button>
-                    </div>
+            <div class="sidebar-header">
+                <div class="sidebar-title">
+                    <img src="https://raw.githubusercontent.com/GusHem/NordSym-Logga/refs/heads/main/Gra%CC%88vling%20flownode%20avatar.svg" alt="FlowNode Avatar" class="sidebar-avatar">
                 </div>
-                 <div class="chat-container">
+                <div class="header-actions">
+                    <button class="header-btn" id="show-chat-btn" title="Chatt"><svg><use href="#icon-chat"></use></svg></button>
+                    <button class="header-btn" id="new-chat-btn" title="Ny Chatt"><svg><use href="#icon-plus"></use></svg></button>
+                    <button class="header-btn" id="show-flows-btn" title="Mina Flöden"><svg><use href="#icon-folder"></use></svg></button>
+                    <button class="header-btn" id="show-library-btn" title="Verktygsbibliotek"><svg><use href="#icon-grid"></use></svg></button>
+                    <button class="header-btn" id="show-team-btn" title="Team & Socials"><svg><use href="#icon-users"></use></svg></button>
+                    <button class="header-btn" id="show-history-btn" title="Chatthistorik"><svg><use href="#icon-history"></use></svg></button>
+                    <button class="header-btn" id="show-settings-btn" title="Inställningar"><svg><use href="#icon-settings"></use></svg></button>
+                    <button class="header-btn" id="theme-toggle-btn" title="Växla tema"><svg id="theme-icon"><use href="#icon-sun"></use></svg></button>
+                </div>
+            </div>
+            <div class="views-wrapper">
+                <div id="chat-view" class="view-container chat-container">
                     <div class="chat-messages" id="chat-messages"></div>
                     <div class="chat-input-area" id="chat-input-area">
                         <div id="contextual-suggestions"></div>
@@ -345,309 +479,57 @@
                             <button class="chat-action-btn secondary" id="select-area-btn" title="Välj ett område att analysera"><svg><use href="#icon-select-area"></use></svg></button>
                             <button class="chat-action-btn secondary" id="analyze-page-btn" title="Analysera Hela Sidan"><svg><use href="#icon-sparkles"></use></svg></button>
                             <textarea id="chat-input" placeholder="Skriv ett meddelande..." rows="1"></textarea>
-                            <button id="chat-send-btn" class="chat-action-btn primary" title="Skicka">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                            </button>
+                            <button id="chat-send-btn" class="chat-action-btn primary" title="Skicka"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Other Views -->
-            <div id="canvas-view" class="view-container">
-                 <div class="sidebar-header">
-                    <div class="sidebar-title">
-                        <img src="https://raw.githubusercontent.com/GusHem/NordSym-Logga/refs/heads/main/Gra%CC%88vling%20flownode%20avatar.svg" alt="FlowNode Avatar" class="sidebar-avatar">
-                        <h2 class="sidebar-title-text" id="active-flow-title-canvas"></h2>
+                
+                <div id="canvas-view" class="view-container">
+                    <div class="workflow-canvas-container" id="workflow-canvas-container">
+                        <svg id="workflow-svg-layer" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></svg>
+                        <div id="workflow-canvas" style="position:relative; width: 100%; height: 100%;"></div>
+                        <div class="canvas-toolbar">
+                             <button class="canvas-tool-btn" id="add-node-btn" title="Lägg till Nod"><svg><use href="#icon-plus"></use></svg></button>
+                             <button class="canvas-tool-btn" id="activate-flow-btn" title="Aktivera Flöde"><svg><use href="#icon-play"></use></svg></button>
+                        </div>
                     </div>
-                    <div class="header-actions"><button class="header-btn" id="show-chat-btn-canvas" title="Visa chatt"><svg><use href="#icon-chat"></use></svg></button></div>
-                 </div>
-                 <div class="workflow-canvas-container">
-                    <svg id="workflow-svg-layer" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></svg>
-                    <div id="workflow-canvas" style="position:relative; width: 100%; height: 100%;"></div>
+                </div>
+                <div id="library-view" class="view-container">
+                     <div class="library-content">
+                        <div class="library-search"><input type="text" id="tool-search-input" placeholder="Sök verktyg..."></div>
+                        <div class="tool-library-container" id="tool-library-container"></div>
+                     </div>
+                </div>
+                <div id="team-view" class="view-container">
+                     <div class="team-view-container" id="team-view-container"></div>
+                </div>
+                <div id="flows-view" class="view-container">
+                     <div class="flows-view-container">
+                        <div class="flows-list" id="flows-list"></div>
+                        <div class="flows-footer"><button class="create-flow-btn" id="create-flow-btn">Skapa nytt flöde</button></div>
+                     </div>
+                </div>
+                <div id="history-view" class="view-container">
+                     <div class="history-view-container" id="history-view-container"></div>
+                </div>
+                <div id="settings-view" class="view-container">
+                     <div class="settings-view-container" id="settings-view-container"></div>
                 </div>
             </div>
-            <div id="library-view" class="view-container">
-                 <div class="sidebar-header">
-                    <div class="sidebar-title"><h2>Verktygsbibliotek</h2></div>
-                    <div class="header-actions"><button class="header-btn" id="show-chat-btn-library" title="Visa chatt"><svg><use href="#icon-chat"></use></svg></button></div>
-                 </div>
-                 <div class="library-content">
-                    <div class="library-search"><input type="text" id="tool-search-input" placeholder="Sök verktyg..."></div>
-                    <div class="tool-library-container" id="tool-library-container"></div>
-                 </div>
-            </div>
-            <div id="team-view" class="view-container">
-                 <div class="sidebar-header">
-                    <div class="sidebar-title"><h2>Team & Socials</h2></div>
-                    <div class="header-actions"><button class="header-btn" id="show-chat-btn-team" title="Visa chatt"><svg><use href="#icon-chat"></use></svg></button></div>
-                 </div>
-                 <div class="team-view-container" id="team-view-container"></div>
-            </div>
-            <div id="flows-view" class="view-container">
-                 <div class="sidebar-header">
-                    <div class="sidebar-title"><h2>Mina Flöden</h2></div>
-                    <div class="header-actions"><button class="header-btn" id="show-chat-btn-flows" title="Visa chatt"><svg><use href="#icon-chat"></use></svg></button></div>
-                 </div>
-                 <div class="flows-view-container">
-                    <div class="flows-list" id="flows-list"></div>
-                    <div class="flows-footer"><button class="create-flow-btn" id="create-flow-btn">Skapa nytt flöde</button></div>
-                 </div>
-            </div>
-            <div id="history-view" class="view-container">
-                 <div class="header-actions" style="position: absolute; top: 0.75rem; right: 1rem; z-index: 10;"><button class="header-btn" id="show-chat-btn-history" title="Visa chatt"><svg><use href="#icon-chat"></use></svg></button></div>
-                 <div class="history-view-container" id="history-view-container"></div>
-            </div>
-            <div id="settings-view" class="view-container">
-                 <div class="header-actions" style="position: absolute; top: 0.75rem; right: 1rem; z-index: 10;"><button class="header-btn" id="show-chat-btn-settings" title="Visa chatt"><svg><use href="#icon-chat"></use></svg></button></div>
-                 <div class="settings-view-container" id="settings-view-container"></div>
-            </div>
+        </div>
+    </div>
+    
+    <div id="node-picker-modal">
+        <div class="node-picker-content">
+            <div class="node-picker-header">Välj ett verktyg att lägga till</div>
+            <div class="node-picker-body" id="node-picker-body"></div>
         </div>
     </div>
 
     <script>
     'use strict';
     
-    // --- CORE APP STRUCTURE (Placeholders) ---
-    // These objects are defined upfront to establish the application's structure.
-    // They are populated with data and methods later in the script.
-    
-    const GeminiService = {}; // Handles AI interactions.
-    const NodeLibrary = {};   // Defines different workflow node types.
-    const State = {};         // Manages all application data.
-    const App = {};           // Contains the main application logic and UI orchestration.
-
-    // --- MAIN APP LOGIC ---
-    Object.assign(App, {
-        // Initializes the application.
-        async init() {
-            this.elements = {
-                sidebar: document.getElementById('flownode-sidebar'),
-                chatMessages: document.getElementById('chat-messages'), chatInput: document.getElementById('chat-input'),
-                chatSendBtn: document.getElementById('chat-send-btn'), analyzePageBtn: document.getElementById('analyze-page-btn'),
-                contextualSuggestions: document.getElementById('contextual-suggestions'),
-                activeFlowTitleCanvas: document.getElementById('active-flow-title-canvas'), themeToggleBtn: document.getElementById('theme-toggle-btn'),
-                showLibraryBtn: document.getElementById('show-library-btn'), showFlowsBtn: document.getElementById('show-flows-btn'),
-                showTeamBtn: document.getElementById('show-team-btn'), pageContent: document.getElementById('page-content'),
-                themeIcon: document.getElementById('theme-icon'), showChatBtnCanvas: document.getElementById('show-chat-btn-canvas'),
-                showChatBtnLibrary: document.getElementById('show-chat-btn-library'), showChatBtnTeam: document.getElementById('show-chat-btn-team'),
-                showChatBtnFlows: document.getElementById('show-chat-btn-flows'), createFlowBtn: document.getElementById('create-flow-btn'),
-                flowsList: document.getElementById('flows-list'), toolLibraryContainer: document.getElementById('tool-library-container'),
-                toolSearchInput: document.getElementById('tool-search-input'), teamViewContainer: document.getElementById('team-view-container'),
-                selectAreaBtn: document.getElementById('select-area-btn'),
-                selectionOverlay: document.getElementById('selection-simulation-overlay'),
-                workflowCanvas: document.getElementById('workflow-canvas'),
-                workflowSvgLayer: document.getElementById('workflow-svg-layer'),
-                // New elements
-                showHistoryBtn: document.getElementById('show-history-btn'),
-                showSettingsBtn: document.getElementById('show-settings-btn'),
-                historyViewContainer: document.getElementById('history-view-container'),
-                settingsViewContainer: document.getElementById('settings-view-container'),
-                showChatBtnHistory: document.getElementById('show-chat-btn-history'),
-                showChatBtnSettings: document.getElementById('show-chat-btn-settings'),
-            };
-            
-            await State.load();
-            this.applyTheme();
-            this.setupListeners();
-            this.renderAll();
-            this.renderWelcomeMessage();
-        },
-
-        // Sets up all event listeners.
-        setupListeners() {
-            Object.values(this.elements).forEach(el => { if(!el) console.error("Ett UI-element saknas!"); });
-            this.elements.chatSendBtn.onclick = () => this.handleUserMessage();
-            this.elements.analyzePageBtn.onclick = () => this.fetchAndShowSuggestions();
-            this.elements.chatInput.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.handleUserMessage(); }};
-            this.elements.showLibraryBtn.onclick = () => this.setView('library');
-            this.elements.showTeamBtn.onclick = () => this.setView('team');
-            this.elements.showFlowsBtn.onclick = () => this.setView('flows');
-            this.elements.showHistoryBtn.onclick = () => this.setView('history');
-            this.elements.showSettingsBtn.onclick = () => this.setView('settings');
-            this.elements.themeToggleBtn.onclick = () => this.toggleTheme();
-            this.elements.toolSearchInput.onkeyup = () => this.renderToolLibrary();
-            this.elements.createFlowBtn.onclick = () => this.createNewFlow();
-            document.querySelectorAll('#show-chat-btn-canvas, #show-chat-btn-library, #show-chat-btn-team, #show-chat-btn-flows, #show-chat-btn-history, #show-chat-btn-settings').forEach(btn => {
-                if(btn) btn.onclick = () => this.setView('chat');
-            });
-            this.elements.selectAreaBtn.onclick = () => this.simulateAreaSelection();
-        },
-        
-        // Simulates the user selecting an area on the page.
-        simulateAreaSelection() {
-            this.elements.chatMessages.querySelector(".welcome-placeholder")?.remove();
-            const overlay = this.elements.selectionOverlay;
-            if (!overlay) return;
-            overlay.style.display = 'flex';
-            setTimeout(() => {
-                overlay.style.display = 'none';
-                this.addMessage({ 
-                    sender: 'bot', 
-                    content: { type: 'text', value: 'Område valt! Nu kan du ställa specifika frågor om det.' } 
-                });
-            }, 2800);
-        },
-        
-        // A master render function to update all dynamic UI parts.
-        renderAll() {
-            this.renderActiveFlowHeader(); 
-            this.renderFlowsList(); 
-            this.renderToolLibrary(); 
-            this.renderTeamView();
-            this.renderWorkflowCanvas();
-            this.renderHistoryView();
-            this.renderSettingsView();
-        },
-
-        // Displays the initial message in the chat window.
-        renderWelcomeMessage() {
-            this.elements.chatMessages.innerHTML = `
-                <div class="welcome-placeholder">
-                    <svg><use href="#icon-flow"></use></svg>
-                    <h3>Välkommen till FlowNode</h3>
-                    <p>Klicka på ✨ för att analysera sidan, eller ställ en fråga.</p>
-                </div>`;
-        },
-        
-        // Renders the visual representation of the current workflow.
-        renderWorkflowCanvas() {
-            const flow = this.getActiveFlow();
-            const canvas = this.elements.workflowCanvas;
-            const svgLayer = this.elements.workflowSvgLayer;
-            if (!flow || !canvas || !svgLayer) return;
-
-            canvas.innerHTML = '';
-            svgLayer.innerHTML = '';
-
-            if (flow.nodes.length === 0) {
-                canvas.innerHTML = `<div style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); color: var(--text-secondary); text-align: center;">Börja med att bygga ett flöde i chatten.</div>`;
-                return;
-            }
-
-            flow.nodes.forEach(node => {
-                const nodeInfo = NodeLibrary[node.variantId] || NodeLibrary.default;
-                const nodeEl = document.createElement('div');
-                nodeEl.className = 'workflow-node';
-                nodeEl.id = `flow-node-${node.id}`;
-                nodeEl.style.left = `${node.position.x}px`;
-                nodeEl.style.top = `${node.position.y}px`;
-                nodeEl.innerHTML = `
-                    <div class="node-icon" style="background-color: ${nodeInfo.color};">${nodeInfo.icon}</div>
-                    <div class="node-label">${nodeInfo.label}</div>
-                `;
-                canvas.appendChild(nodeEl);
-            });
-            
-            // Defer connection drawing to ensure nodes are in the DOM and have positions.
-            setTimeout(() => {
-                 flow.connections.forEach(conn => {
-                    const fromNode = document.getElementById(`flow-node-${conn.from}`);
-                    const toNode = document.getElementById(`flow-node-${conn.to}`);
-                    if (fromNode && toNode) {
-                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                        const x1 = fromNode.offsetLeft + fromNode.offsetWidth;
-                        const y1 = fromNode.offsetTop + fromNode.offsetHeight / 2;
-                        const x2 = toNode.offsetLeft;
-                        const y2 = toNode.offsetTop + toNode.offsetHeight / 2;
-                        line.setAttribute('x1', x1);
-                        line.setAttribute('y1', y1);
-                        line.setAttribute('x2', x2);
-                        line.setAttribute('y2', y2);
-                        line.setAttribute('class', 'connection-line');
-                        svgLayer.appendChild(line);
-                    }
-                });
-            }, 10);
-        },
-
-        // Changes the visible panel in the sidebar.
-        setView(view) { 
-            this.elements.sidebar.className = "flownode-sidebar";
-            if (State.theme === 'dark') this.elements.sidebar.classList.add('dark');
-            if (view !== 'chat') this.elements.sidebar.classList.add(`${view}-active`);
-            if (view === 'flows') this.renderFlowsList();
-            if (view === 'canvas') this.renderWorkflowCanvas();
-        },
-
-        getActiveFlow() { return State.flows.find(f => f.id === State.activeFlowId) || State.flows[0]; },
-        renderActiveFlowHeader() { const flow = this.getActiveFlow(); if(flow) { this.elements.activeFlowTitleCanvas.textContent = flow.name; } },
-        applyTheme() { this.elements.sidebar.classList.toggle('dark', State.theme === 'dark'); this.elements.themeIcon.innerHTML = `<use href="${State.theme === 'dark' ? '#icon-moon' : '#icon-sun'}"></use>`; this.renderWorkflowCanvas(); },
-        toggleTheme() { State.theme = State.theme === 'light' ? 'dark' : 'light'; this.applyTheme(); },
-        setActiveFlow(flowId) { State.activeFlowId = flowId; this.renderAll(); this.setView('chat'); },
-    });
-    
-    // --- NODE LIBRARY DEFINITIONS ---
-    Object.assign(NodeLibrary, {
-        'salesforce-deal-won': { label: 'Salesforce: Affär Vunnen', icon: '☁️', color: '#00A1E0' },
-        'slack-send-message': { label: 'Slack: Skicka Meddelande', icon: '💬', color: '#4A154B' },
-        'default': { label: 'Okänd Nod', icon: '?', color: '#6b7280' }
-    });
-
-    // --- MOCK SERVICES ---
-    // This section simulates API calls to a backend or AI service.
-    Object.assign(GeminiService, {
-        // Interprets the user's initial query to decide if it's a chat or a command.
-        interpretQuery: async (query) => {
-            await new Promise(r => setTimeout(r, 200)); // Simulate network delay
-            const buildKeywords = ["skapa flöde", "automatisera", "regel:", "när "];
-            const isBuildCommand = buildKeywords.some(k => query.toLowerCase().startsWith(k));
-            return isBuildCommand ? { intent: "BUILD_WORKFLOW", command: query } : { intent: "CHAT", query: query };
-        },
-
-        // Simulates building a workflow from a command.
-        buildWorkflow: async (command) => {
-            await new Promise(r => setTimeout(r, 1000));
-            const lowerCmd = command.toLowerCase();
-            if (lowerCmd.includes("salesforce") && lowerCmd.includes("slack")) {
-                return {
-                    success: true,
-                    workflow: {
-                        nodes: [
-                            { id: "n1", variantId: "salesforce-deal-won", position: { x: 40, y: 100 } },
-                            { id: "n2", variantId: "slack-send-message", position: { x: 300, y: 140 } }
-                        ],
-                        connections: [{ from: "n1", to: "n2" }]
-                    }
-                };
-            }
-            return { success: false, reason: "Förstod ej flödet." };
-        },
-        
-        // Simulates a chat response based on page context.
-        chatAboutContext: async (query, context) => {
-            await new Promise(r => setTimeout(r, 800));
-            const lowerQuery = query.toLowerCase();
-            const lowerContext = context.toLowerCase();
-            if (lowerQuery.includes("värde")) {
-                const valueMatch = lowerContext.match(/\$(\d{1,3}(,\d{3})*(\.\d+)?)/);
-                return { success: true, answer: valueMatch ? `Värdet är ${valueMatch[0]}.` : "Hittade ej värde." };
-            }
-            if (lowerQuery.includes("ansvarig")) {
-                return { success: true, answer: "Ansvarig är Anna Berg." };
-            }
-            return { success: true, answer: "Det var en intressant fråga!" };
-        },
-
-        // Simulates getting suggestions based on page content.
-        suggestFromContext: async (context) => {
-            await new Promise(r => setTimeout(r, 1000));
-            if (context.toLowerCase().includes("flownode landing page")) {
-                return {
-                    success: true,
-                    title: "Förslag för sidan:",
-                    suggestions: [{
-                        label: "Skapa ett välkomstflöde för nya användare",
-                        command: "Skapa flöde: När en ny användare skriver upp sig, skicka ett välkomstmejl och lägg till i CRM."
-                    }]
-                };
-            }
-            return { success: false };
-        }
-    });
-
-    // --- STATE MANAGEMENT ---
-    Object.assign(State, {
+    const State = {
         users: [
             { id: "u1", name: "You", avatar: "https://i.pravatar.cc/40?u=user1", role: "Admin", online: true, socials: { linkedin: "#", twitter: "#" } },
             { id: "u2", name: "Anna Berg", avatar: "https://i.pravatar.cc/40?u=user2", role: "Sales Lead", online: true, socials: { linkedin: "#", twitter: "#" } },
@@ -656,244 +538,860 @@
         ],
         theme: "light",
         activeFlowId: "flow1",
-        flows: [{ id: "flow1", name: "Nytt Säljflöde", nodes: [], connections: [] }],
+        flows: [{ id: "flow1", name: "Nytt Säljflöde", nodes: [], connections: [], isActive: false }],
         chatHistory: [
             { id: "hist1", title: "Analys av landningssida", date: "2024-09-24" },
             { id: "hist2", title: "Skapa Salesforce-flöde", date: "2024-09-23" },
             { id: "hist3", title: "Frågor om Jira-integration", date: "2024-09-22" },
         ],
-        settings: {
-            agentPersona: "En hjälpsam och koncis expert på automatisering."
-        },
+        settings: { agentPersona: "En hjälpsam och koncis expert på automatisering." },
         tools: {
-            "Project Management": [{id:"jira",name:"Jira",iconBg:"#0052CC",connected:true},{id:"asana",name:"Asana",iconBg:"#273347",connected:false},{id:"trello",name:"Trello",iconBg:"#0079BF",connected:true},{id:"notion",name:"Notion",iconBg:"#000000",connected:false},{id:"monday",name:"Monday.com",iconBg:"#FF1A5A",connected:false}],
-            "Development": [{id:"github",name:"GitHub",iconBg:"#181717",connected:true},{id:"gitlab",name:"GitLab",iconBg:"#FC6D26",connected:false},{id:"bitbucket",name:"Bitbucket",iconBg:"#0052CC",connected:false},{id:"datadog",name:"Datadog",iconBg:"#632CA6",connected:true}],
-            "Sales & CRM": [{id:"salesforce",name:"Salesforce",iconBg:"#00A1E0",connected:true},{id:"hubspot",name:"HubSpot",iconBg:"#FF7A59",connected:false},{id:"pipedrive",name:"Pipedrive",iconBg:"#2D883D",connected:false}],
-            "Communication": [{id:"slack",name:"Slack",iconBg:"#4A154B",connected:false},{id:"discord",name:"Discord",iconBg:"#5865F2",connected:true},{id:"msteams",name:"MS Teams",iconBg:"#6264A7",connected:false}],
-            "Documents & Files": [{id:"gsheets",name:"Google Sheets",iconBg:"#188038",connected:true},{id:"gdrive",name:"Google Drive",iconBg:"#4285F4",connected:false},{id:"dropbox",name:"Dropbox",iconBg:"#0061FF",connected:false}]
+             "Project Management": [
+                {id:"jira",name:"Jira",iconBg:"#0052CC",status:"connected"},
+                {id:"asana",name:"Asana",iconBg:"#273347",status:"disconnected"},
+                {id:"trello",name:"Trello",iconBg:"#0079BF",status:"connected"},
+                {id:"notion",name:"Notion",iconBg:"#000000",status:"disconnected"},
+                {id:"monday",name:"Monday.com",iconBg:"#FF1A5A",status:"disconnected"}
+            ],
+            "Development": [
+                {id:"github",name:"GitHub",iconBg:"#181717",status:"connected"},
+                {id:"gitlab",name:"GitLab",iconBg:"#FC6D26",status:"disconnected"},
+                {id:"bitbucket",name:"Bitbucket",iconBg:"#0052CC",status:"disconnected"},
+                {id:"datadog",name:"Datadog",iconBg:"#632CA6",status:"connected"}
+            ],
+            "Sales & CRM": [
+                {id:"salesforce",name:"Salesforce",iconBg:"#00A1E0",status:"connected"},
+                {id:"hubspot",name:"HubSpot",iconBg:"#FF7A59",status:"disconnected"},
+                {id:"pipedrive",name:"Pipedrive",iconBg:"#2D883D",status:"disconnected"}
+            ],
+            "Communication": [
+                {id:"slack",name:"Slack",iconBg:"#4A154B",status:"disconnected"},
+                {id:"discord",name:"Discord",iconBg:"#5865F2",status:"connected"},
+                {id:"msteams",name:"MS Teams",iconBg:"#6264A7",status:"disconnected"}
+            ],
+            "Documents & Files": [
+                {id:"gsheets",name:"Google Sheets",iconBg:"#188038",status:"connected"},
+                {id:"gdrive",name:"Google Drive",iconBg:"#4285F4",status:"disconnected"},
+                {id:"dropbox",name:"Dropbox",iconBg:"#0061FF",status:"disconnected"}
+            ]
         },
-        load: async () => { /* Placeholder for loading state */ },
-        save: async () => { /* Placeholder for saving state */ }
+        async load() { 
+            console.log("State loaded (simulation).");
+            return Promise.resolve();
+        },
+        async save() { 
+            console.log("State saved (simulation).");
+            return Promise.resolve();
+        }
+    };
+
+    const NodeLibrary = {
+        'salesforce-deal-won': { label: 'Salesforce: Affär Vunnen', icon: '☁️', color: '#00A1E0' },
+        'salesforce-trigger': { label: 'Salesforce: Trigger', icon: '☁️', color: '#00A1E0' },
+        'slack-action': { label: 'Slack: Skicka meddelande', icon: '💬', color: '#4A154B' },
+        'jira-trigger': { label: 'Jira: Trigger', icon: '🐞', color: '#0052CC' },
+        'gsheets-action': { label: 'Sheets: Lägg till rad', icon: '📄', color: '#188038' },
+        'gdrive-action': { label: 'Drive: Skapa mapp', icon: '📁', color: '#4285F4'},
+        'rss-trigger': { label: 'RSS: Nytt inlägg', icon: '📰', color: '#f59e0b' },
+        'default': { label: 'Okänd Nod', icon: '?', color: '#6b7280' }
+    };
+
+    const GeminiService = {
+        interpretQuery: async (query) => { /* ... */ },
+        executeCommand: async (command) => { /* ... */ },
+        buildWorkflow: async (command) => { /* ... */ },
+        chatAboutContext: async (query, context) => { /* ... */ },
+        suggestFromContext: async (context) => { /* ... */ },
+        suggestFromSelection: async (selectionContext, pageType) => { /* ... */ }
+    };
+    
+    const App = {};
+    
+    Object.assign(GeminiService, {
+        interpretQuery: async (query) => {
+            const lowerQuery = query.toLowerCase();
+            const buildKeywords = ["skapa ett flöde", "automatisera", "regel:", "när "];
+            if (buildKeywords.some(k => lowerQuery.includes(k))) return { intent: "BUILD_WORKFLOW", command: query };
+            const commandKeywords = [
+                "utkast till ett mail", "uppgift i asana", "git-kommando", 
+                "sammanfatta denna artikel", "inlägg för linkedin", "välkomstmejl",
+                "tweet-tråd", "sök efter ctos",
+                "analysera den här jira-ticketen", "skriv ett utkast till ett linkedin-inlägg"
+            ];
+            if (commandKeywords.some(k => lowerQuery.includes(k))) return { intent: "EXECUTE_COMMAND", command: query };
+            return { intent: "CHAT", query: query };
+        },
+        executeCommand: async (command) => {
+            await new Promise(r => setTimeout(r, 1200));
+            const lowerCmd = command.toLowerCase();
+
+            if (lowerCmd.includes("utkast till ett mail")) return { success: true, answer: `Absolut! Här är ett utkast:<br><br><strong>Ämne: Uppföljning: MegaCorp Enterprise Deal</strong><br><br>Hej Team,<br><br>En kort sammanfattning av vår pågående affär med MegaCorp...` };
+            if (lowerCmd.includes("analysera den här jira-ticketen")) {
+                return { success: true, answer: `Jira-ticket JIRA-123 handlar om en kritisk bugg där användare inte kan logga in med Google SSO. Felet returnerar en 500-kod och blockerar en central funktion, därav den höga prioriteten.` };
+            }
+            if (lowerCmd.includes("skriv ett utkast till ett linkedin-inlägg")) {
+                return { success: true, answer: `Här är ett utkast för LinkedIn, fokuserat på sälj:<br><br>"Hur kan AI transformera er säljprocess? 🤖 Tänk er en värld där er CRM automatiskt berikas med data, där uppföljningsmejl skrivs intelligent och där ni kan förutse vilken affär som behöver er uppmärksamhet just nu. Det är inte framtiden – det är vad AI-driven automatisering med verktyg som FlowNode möjliggör idag. #AIinSales #SalesTech #Automation"` };
+            }
+            if (lowerCmd.includes("git-kommando")) return { success: true, answer: `Här är kommandot för att skapa en ny branch:<br><pre><code>git checkout -b bugfix/JIRA-123-sso-login</code></pre>`};
+            if (lowerCmd.includes("skapa en tweet-tråd")) {
+                return { success: true, answer: `Absolut! Här är ett utkast till en tweet-tråd, redo att postas:<br><br>1/ AI i automatisering är här för att stanna! 🚀 Framtiden handlar inte om att ersätta människor, utan om att förstärka vår kreativitet. #AI #Automation<br><br>2/ Glöm stela, regelbaserade system. Moderna verktyg (som FlowNode 😉) använder AI för att förstå ostrukturerad data och fatta smartare beslut.<br><br>3/ Det största skiftet? Från att *berätta* för våra verktyg exakt vad de ska göra, till att ge dem ett mål och låta dem *lista ut* hur. Mindblowing! ✨`};
+            }
+            if (lowerCmd.includes("sök efter ctos")) {
+                return { success: true, answer: `OK, jag har initierat en sökning i LinkedIn Sales Navigator. Jag hittade 3 potentiella leads på företag i Norden som matchar kriterierna. Jag har skapat ett utkast med en personlig inledning till dem baserat på deras senaste inlägg.`};
+            }
+            return { success: true, answer: "Jag har utfört din begäran." };
+        },
+        buildWorkflow: async (command) => {
+            await new Promise(r => setTimeout(r, 1000));
+            const lowerCmd = command.toLowerCase();
+            if (lowerCmd.includes("salesforce") && lowerCmd.includes("google drive")) {
+                return { success: true, workflow: { nodes: [ { id: "n1", variantId: "salesforce-trigger", position: { x: 40, y: 100 } }, { id: "n2", variantId: "gdrive-action", position: { x: 300, y: 140 } } ], connections: [{ from: "n1", to: "n2" }] } };
+            }
+            if (lowerCmd.includes("salesforce") && lowerCmd.includes("slack")) {
+                return { success: true, workflow: { nodes: [ { id: "n1", variantId: "salesforce-deal-won", position: { x: 40, y: 100 } }, { id: "n2", variantId: "slack-action", position: { x: 300, y: 140 } } ], connections: [{ from: "n1", to: "n2" }] } };
+            }
+             if (lowerCmd.includes("ny artikel om ai") && lowerCmd.includes("slack")) {
+                return { success: true, workflow: { nodes: [ { id: "n1", variantId: "rss-trigger", position: { x: 40, y: 100 } }, { id: "n2", variantId: "slack-action", position: { x: 300, y: 140 } } ], connections: [{ from: "n1", to: "n2" }] } };
+            }
+            return { success: false, reason: "Jag förstod inte det flödet, kan du försöka igen?" };
+        },
+        chatAboutContext: async (query, context) => {
+            await new Promise(r => setTimeout(r, 800));
+            const lowerQuery = query.toLowerCase();
+            if (lowerQuery.includes("viktigaste på sidan")) {
+                 const lowerContext = context.toLowerCase();
+                 if (lowerContext.includes("flownode landing page")) return { success: true, answer: "Det viktigaste på den här sidan är att du kan skriva upp dig på vår väntelista för att få tidig tillgång! Sidan förklarar också hur FlowNode hjälper dig att automatisera dina arbetsflöden direkt i webbläsaren." };
+                 if (lowerContext.includes("salesforce")) return { success: true, answer: "Detta är en högvärdesaffär med 'MegaCorp'. Just nu är den i förhandlingsstadiet med ett värde på 1.2M SEK." };
+                 if (lowerContext.includes("jira")) return { success: true, answer: "Det är en buggrapport med hög prioritet. Användare kan inte logga in med SSO, vilket är en kritisk funktion." };
+                 if (lowerContext.includes("blog post")) return { success: true, answer: "Artikeln handlar om hur AI håller på att förändra automatisering, från enkla regelbaserade system till smarta, adaptiva agenter." };
+            }
+            if (lowerQuery.includes("sammanfatta problemet")) return { success: true, answer: `Jira-ticket JIRA-123 handlar om en kritisk bugg där användare inte kan logga in med Google SSO. Felet returnerar en 500-kod och blockerar en central funktion, därav den höga prioriteten.` };
+            if (lowerQuery.includes("värde")) return { success: true, answer: "Värdet är 1 200 000 SEK." };
+            if (lowerQuery.includes("ansvarig")) return { success: true, answer: "Ansvarig är Anna Berg." };
+            return { success: true, answer: "Jag är inte säker på hur jag ska svara på det just nu." };
+        },
+        suggestFromContext: async (context) => {
+            await new Promise(r => setTimeout(r, 1000));
+            const lowerContext = context.toLowerCase();
+             if (lowerContext.includes("flownode landing page")) {
+                return {
+                    success: true, analysis: "Jag har analyserat er landningssida. Snyggt! Den är tydlig och konverteringsfokuserad, speciellt väntelistan.",
+                    title: "Hur kan vi automatisera er lansering?",
+                    suggestions: [
+                        { label: "Skapa en 'funnel' för nya anmälningar", command: "Skapa ett flöde som skickar ett välkomstmejl och lägger till nya anmälningar i Google Sheets." },
+                        { label: "Identifiera och kontakta heta leads", command: "Skapa ett flöde: Om en anmälan kommer från en företagsdomän, sök upp personen på LinkedIn och skapa ett utkast till ett meddelande." },
+                        { label: "Bygg hype på sociala medier", command: "Skriv ett utkast till en tweet som tackar nya följare och uppmuntrar dem att skriva upp sig." }
+                    ]
+                };
+            }
+            if (lowerContext.includes("salesforce opportunity")) {
+                return {
+                    success: true, analysis: "Jag ser en Salesforce-sida med en högvärdesaffär. Bra jobbat!",
+                    title: "Vad vill du göra med den här affären?",
+                    suggestions: [
+                        { label: "Sammanfatta affären i ett mail", command: "Skriv ett utkast till ett mail som sammanfattar affärsmöjligheten 'MegaCorp Enterprise Deal'." },
+                        { label: "Skapa en uppföljningsuppgift", command: "Skapa en uppgift i Asana: 'Följ upp med MegaCorp nästa vecka'." },
+                        { label: "Starta ett flöde när affären vinns", command: "Skapa ett flöde: När en affär med värde över 1M SEK vinns i Salesforce, skicka ett meddelande i Slack-kanalen #sales-wins."}
+                    ]
+                };
+            }
+            if (lowerContext.includes("jira ticket")) {
+                 return {
+                    success: true, analysis: "OK, jag har analyserat denna Jira-ticket. Det verkar vara en brådskande bugg.",
+                    title: "Hur kan jag hjälpa till med buggrapporten?",
+                    suggestions: [
+                        { label: "Hur allvarlig är buggen?", command: "Baserat på ticket-beskrivningen, vad är prioritetsnivån för JIRA-123?" },
+                        { label: "Skapa en Git-branch för fixen", command: "Generera ett git-kommando för att skapa en branch för JIRA-123." },
+                    ]
+                };
+            }
+            if (lowerContext.includes("blog post about ai")) {
+                 return {
+                    success: true, analysis: "Intressant artikel om AI i automatisering. Detta är precis vad FlowNode är byggt för!",
+                    title: "Hur kan vi agera på dessa insikter?",
+                    suggestions: [
+                        { label: "Omvandla artikeln till en tweet-tråd", command: "Skapa en tweet-tråd med de tre viktigaste punkterna från artikeln." },
+                        { label: "Hitta leads som gillar detta ämne", command: "Sök efter CTOs på LinkedIn som nyligen diskuterat AI-automatisering." },
+                        { label: "Automatisera bevakning av detta ämne", command: "Skapa ett flöde: När en ny artikel om AI publiceras, sammanfatta den och posta i #ai-insikter på Slack." }
+                    ]
+                };
+            }
+            return { success: false };
+        },
+        suggestFromSelection: async (selectionContext, contextType) => {
+             await new Promise(r => setTimeout(r, 800));
+             switch(contextType) {
+                case 'value':
+                    return {
+                        success: true, analysis: `Jag har läst av värdet: **${selectionContext}**.`,
+                        title: "Vad vill du göra med detta värde?",
+                        suggestions: [
+                            { label: "Skapa en rapport för detta värde", command: `Skapa en rapport för ${selectionContext}` },
+                            { label: "Meddela finansavdelningen", command: `Skicka ett meddelande till #finans om en affär värd ${selectionContext}` },
+                        ]
+                    };
+                case 'priority':
+                    return {
+                        success: true, analysis: `Jag ser att prioriteten är **${selectionContext}**.`,
+                        title: "Hur ska vi hantera detta?",
+                        suggestions: [
+                            { label: "Eskalera ärendet till team lead", command: "Meddela team lead om ett ärende med hög prioritet" },
+                            { label: "Blockera tid i kalendern", command: "Blockera 2 timmar i min kalender för att jobba på detta ärende" },
+                        ]
+                    };
+                 case 'author':
+                    return {
+                        success: true, analysis: `Artikeln är skriven av **${selectionContext.replace('Av: ','')}**.`,
+                        title: "Vad vill du göra?",
+                        suggestions: [
+                            { label: "Hitta fler artiklar av författaren", command: `Sök efter fler artiklar av ${selectionContext.replace('Av: ','')}` },
+                            { label: "Skriv ett tweet som nämner författaren", command: `Skriv ett tweet om AI i automation och tagga ${selectionContext.replace('Av: ','')}` },
+                        ]
+                    };
+                case 'waitlist':
+                    return {
+                        success: true, analysis: `Jag har markerat er väntelista. En bra start!`,
+                        title: "Hur kan vi optimera den här tratten?",
+                        suggestions: [
+                            { label: "Skicka ett personligt välkomstmejl", command: "Skapa ett flöde: När en ny person anmäler sig, skicka ett välkomstmejl." },
+                            { label: "Analysera & posta på sociala medier", command: "Skapa ett flöde: När en anmälan kommer från en företagsdomän, skapa ett utkast för ett LinkedIn-inlägg." },
+                            { label: "Spara anmälningar för uppföljning", command: "Skapa ett flöde: Lägg till alla nya anmälningar i en Google Sheet." },
+                        ]
+                    };
+                default:
+                    return { success: false };
+             }
+        }
     });
 
-    // --- APP METHOD IMPLEMENTATIONS ---
-    Object.assign(App, {
-        handleUserMessage: async function() {
-            const userInput = this.elements.chatInput.value.trim();
-            if (!userInput) return;
-
-            this.elements.chatMessages.querySelector(".welcome-placeholder")?.remove();
-            this.addMessage({ sender: "user", content: { type: "text", value: userInput } });
-            this.elements.chatInput.value = "";
-            this.elements.contextualSuggestions.innerHTML = "";
-
-            const loadingMsg = this.addMessage({ sender: "bot", content: { type: "loading" } });
-            const interpretation = await GeminiService.interpretQuery(userInput);
-
-            if (interpretation.intent === "BUILD_WORKFLOW") {
-                const result = await GeminiService.buildWorkflow(interpretation.command);
-                this.removeMessage(loadingMsg.id);
-                if (result.success) {
-                    const activeFlow = this.getActiveFlow();
-                    if (activeFlow) {
-                        activeFlow.nodes = result.workflow.nodes;
-                        activeFlow.connections = result.workflow.connections;
-                        await State.save();
-                        this.addMessage({ sender: "bot", content: { type: "text", value: "OK, jag har skapat flödet. Kika i canvas-vyn!" } });
-                        this.renderAll();
-                        setTimeout(() => this.setView("canvas"), 500);
-                    }
-                } else {
-                    this.addMessage({ sender: "bot", content: { type: "text", value: result.reason } });
-                }
-            } else { // CHAT intent
-                const pageContext = this.elements.pageContent.textContent;
-                const result = await GeminiService.chatAboutContext(interpretation.query, pageContext);
-                this.removeMessage(loadingMsg.id);
-                if (result.success) {
-                    this.addMessage({ sender: "bot", content: { type: "text", value: result.answer } });
-                }
-            }
-        },
-
-        fetchAndShowSuggestions: async function() {
-            this.elements.chatMessages.querySelector(".welcome-placeholder")?.remove();
-            const loadingMsg = this.addMessage({ sender: "bot", content: { type: "loading" } });
-            const pageContext = this.elements.pageContent.textContent;
-            const result = await GeminiService.suggestFromContext(pageContext);
-            this.removeMessage(loadingMsg.id);
-            if (result.success) {
-                this.renderSuggestions(result.title, result.suggestions);
-            } else {
-                this.addMessage({ sender: "bot", content: { type: "text", value: "Hittade inga förslag för den här sidan." } });
-            }
-        },
-
-        renderSuggestions: function(title, suggestions) {
-            let html = `<div class="suggestion-card-container">
-                <p style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.25rem;">${title}</p>`;
-            suggestions.forEach(sugg => {
-                html += `<button class="suggestion-btn" data-command="${sugg.command}">${sugg.label}</button>`;
-            });
-            html += `</div>`;
-            this.elements.contextualSuggestions.innerHTML = html;
-            this.elements.contextualSuggestions.querySelectorAll(".suggestion-btn").forEach(btn => {
-                btn.onclick = () => {
-                    this.elements.chatInput.value = btn.dataset.command;
-                    this.handleUserMessage();
+    document.addEventListener('DOMContentLoaded', () => {
+        // Re-assign all methods to the main App object
+        Object.assign(App, {
+            async init() {
+                this.elements = {
+                    sidebar: document.getElementById('flownode-sidebar'),
+                    chatMessages: document.getElementById('chat-messages'), chatInput: document.getElementById('chat-input'),
+                    chatSendBtn: document.getElementById('chat-send-btn'), analyzePageBtn: document.getElementById('analyze-page-btn'),
+                    contextualSuggestions: document.getElementById('contextual-suggestions'),
+                    themeToggleBtn: document.getElementById('theme-toggle-btn'),
+                    showChatBtn: document.getElementById('show-chat-btn'),
+                    showLibraryBtn: document.getElementById('show-library-btn'), showFlowsBtn: document.getElementById('show-flows-btn'),
+                    showTeamBtn: document.getElementById('show-team-btn'), 
+                    themeIcon: document.getElementById('theme-icon'), 
+                    createFlowBtn: document.getElementById('create-flow-btn'),
+                    flowsList: document.getElementById('flows-list'), toolLibraryContainer: document.getElementById('tool-library-container'),
+                    toolSearchInput: document.getElementById('tool-search-input'), teamViewContainer: document.getElementById('team-view-container'),
+                    selectAreaBtn: document.getElementById('select-area-btn'),
+                    selectionOverlay: document.getElementById('selection-simulation-overlay'),
+                    selectionBox: document.getElementById('selection-box'),
+                    workflowCanvas: document.getElementById('workflow-canvas'),
+                    workflowCanvasContainer: document.getElementById('workflow-canvas-container'),
+                    workflowSvgLayer: document.getElementById('workflow-svg-layer'),
+                    showHistoryBtn: document.getElementById('show-history-btn'),
+                    showSettingsBtn: document.getElementById('show-settings-btn'),
+                    historyViewContainer: document.getElementById('history-view-container'),
+                    settingsViewContainer: document.getElementById('settings-view-container'),
+                    newChatBtn: document.getElementById('new-chat-btn'),
+                    dummyContent: document.getElementById('dummy-content'),
+                    addressBar: document.getElementById('address-bar'),
+                    browserTabs: document.getElementById('browser-tabs'),
+                    addNodeBtn: document.getElementById('add-node-btn'),
+                    activateFlowBtn: document.getElementById('activate-flow-btn'),
+                    nodePickerModal: document.getElementById('node-picker-modal'),
+                    nodePickerBody: document.getElementById('node-picker-body'),
                 };
-            });
-        },
-
-        addMessage: function(msg) {
-            const msgId = `msg-${Date.now()}`;
-            const msgEl = document.createElement("div");
-            const senderClass = msg.sender === "user" ? "user-message" : "bot-message";
-            msgEl.className = `chat-message ${senderClass}`;
-            msgEl.id = msgId;
-            const content = msg.content.type === "loading" ? "..." : msg.content.value;
+                this.canvasState = {
+                    dragging: false, dragTarget: null, dragOffsetX: 0, dragOffsetY: 0,
+                    connecting: false, fromNodeId: null, fromHandle: null, tempLine: null
+                };
+                this.demoPages = {
+                    flownode: { id: 'flownode', title: 'FlowNode - Automate Everything', url: 'https://www.flownode.ai', icon: 'https://raw.githubusercontent.com/GusHem/NordSym-Logga/refs/heads/main/Final%20logo%20no%20text.svg' },
+                    salesforce: { id: 'salesforce', title: 'Salesforce Opportunity', url: 'https://acme.salesforce.com/opp/123', icon: 'https://i.imgur.com/72011vj.png' },
+                    jira: { id: 'jira', title: 'Jira Ticket JIRA-123', url: 'https://acme.atlassian.net/browse/JIRA-123', icon: 'https://i.imgur.com/83F57w3.png' },
+                    blog: { id: 'blog', title: 'The AI Blog', url: 'https://blog.ai-insights.com/future-of-ai', icon: 'https://i.imgur.com/kF4LzJw.png' }
+                };
+                this.currentPage = 'flownode';
+                this.demoPageRotation = ['salesforce', 'jira', 'blog'];
+                this.currentDemoIndex = 0;
+                
+                await State.load();
+                this.applyTheme();
+                this.setupListeners();
+                this.renderAll();
+                this.renderWelcomeMessage();
+                this.updateBrowserUI();
+            },
+    
+            setupListeners() {
+                this.elements.chatSendBtn.onclick = () => this.handleUserMessage();
+                this.elements.analyzePageBtn.onclick = () => this.simulatePageChangeAndAnalyze();
+                this.elements.chatInput.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.handleUserMessage(); }};
+                this.elements.showChatBtn.onclick = () => this.setView('chat');
+                this.elements.showLibraryBtn.onclick = () => this.setView('library');
+                this.elements.showTeamBtn.onclick = () => this.setView('team');
+                this.elements.showFlowsBtn.onclick = () => this.setView('flows');
+                this.elements.showHistoryBtn.onclick = () => this.setView('history');
+                this.elements.showSettingsBtn.onclick = () => this.setView('settings');
+                this.elements.themeToggleBtn.onclick = () => this.toggleTheme();
+                this.elements.toolSearchInput.onkeyup = () => this.renderToolLibrary();
+                this.elements.createFlowBtn.onclick = () => this.createNewFlow();
+                this.elements.newChatBtn.onclick = () => this.newChat();
+                this.elements.selectAreaBtn.onclick = () => this.simulateAreaSelection();
+                this.elements.addNodeBtn.onclick = () => this.toggleNodePicker(true);
+                this.elements.activateFlowBtn.onclick = () => this.toggleFlowActive();
+                this.elements.nodePickerModal.onclick = (e) => { if (e.target === this.elements.nodePickerModal) this.toggleNodePicker(false); };
+                document.addEventListener('mousemove', (e) => this.handleCanvasMouseMove(e));
+                document.addEventListener('mouseup', (e) => this.handleCanvasMouseUp(e));
+            },
             
-            if (msg.sender === 'bot') {
-                 msgEl.innerHTML = `
-                    <img src="https://raw.githubusercontent.com/GusHem/NordSym-Logga/refs/heads/main/FlowNode%20gra%CC%88vling%20avatar%20closeup.svg" alt="Agent Avatar" class="message-avatar">
-                    <div class="message-bubble">${content}</div>
-                `;
-            } else {
-                 msgEl.innerHTML = `<div class="message-bubble">${content}</div>`;
-            }
+            async simulateAreaSelection() {
+                const currentPageEl = document.getElementById(`page-${this.currentPage}`);
+                const selectableArea = currentPageEl.querySelector('.selectable-area');
+                if (!selectableArea) return;
 
-            this.elements.chatMessages.appendChild(msgEl);
-            this.elements.chatMessages.scrollTop = this.elements.chatMessages.scrollHeight;
-            return { id: msgId, element: msgEl };
-        },
+                const contentRect = this.elements.dummyContent.getBoundingClientRect();
+                const areaRect = selectableArea.getBoundingClientRect();
 
-        removeMessage: function(msgId) {
-            document.getElementById(msgId)?.remove();
-        },
+                const overlay = this.elements.selectionOverlay;
+                const box = this.elements.selectionBox;
+                overlay.style.display = 'block';
+                box.style.left = `${areaRect.left - contentRect.left}px`;
+                box.style.top = `${areaRect.top - contentRect.top}px`;
+                box.style.width = '0px';
+                box.style.height = '0px';
 
-        createNewFlow: function() {
-            const newFlow = { id: `flow_${Date.now()}`, name: "Namnlöst flöde", nodes: [], connections: [] };
-            State.flows.push(newFlow);
-            State.activeFlowId = newFlow.id;
-            this.renderAll();
-            this.setView("chat");
-        },
+                await new Promise(r => setTimeout(r, 50)); 
+                
+                box.style.width = `${areaRect.width}px`;
+                box.style.height = `${areaRect.height}px`;
 
-        renderFlowsList: function() {
-            const container = this.elements.flowsList;
-            if (container) {
-                container.innerHTML = State.flows.map(flow =>
-                    `<div class="flow-card ${flow.id === State.activeFlowId ? "active" : ""}" data-flow-id="${flow.id}">
-                        <span>${flow.name}</span>
-                    </div>`
-                ).join("");
-                container.querySelectorAll(".flow-card").forEach(card => {
-                    card.onclick = () => this.setActiveFlow(card.dataset.flowId);
-                });
-            }
-        },
+                await new Promise(r => setTimeout(r, 1500));
 
-        renderToolLibrary: function() {
-            const container = this.elements.toolLibraryContainer;
-            const searchTerm = this.elements.toolSearchInput.value.toLowerCase();
-            let html = "";
-            for (const category in State.tools) {
-                const filteredTools = State.tools[category].filter(tool => tool.name.toLowerCase().includes(searchTerm));
-                if (filteredTools.length > 0) {
-                    html += `<div class="tool-category"><h3>${category}</h3><div class="tool-grid">`;
-                    filteredTools.forEach(tool => {
-                        html += `
-                        <div class="tool-card" data-tool-id="${tool.id}">
-                            <div class="tool-icon" style="background-color: ${tool.iconBg};">${tool.name.charAt(0)}</div>
-                            <div class="tool-name">${tool.name} <span class="status-dot ${tool.connected ? "connected" : ""}"></span></div>
-                        </div>`;
-                    });
-                    html += `</div></div>`;
+                overlay.style.display = 'none';
+                box.style.width = '0px';
+                box.style.height = '0px';
+
+                const selectedText = selectableArea.textContent.trim();
+                const contextType = selectableArea.dataset.contextType;
+                
+                this.elements.chatMessages.querySelector(".welcome-placeholder")?.remove();
+                this.elements.contextualSuggestions.innerHTML = '';
+                const loadingMsg = this.addMessage({ sender: "bot", content: { type: "loading" } });
+
+                const result = await GeminiService.suggestFromSelection(selectedText, contextType);
+                this.removeMessage(loadingMsg.id);
+
+                if (result.success) {
+                    this.addMessage({ sender: "bot", content: { type: "text", value: result.analysis } });
+                    this.renderSuggestions(result.title, result.suggestions);
+                } else {
+                    this.addMessage({ sender: "bot", content: { type: "text", value: "Jag kunde inte tolka det markerade området." } });
                 }
-            }
-            container.innerHTML = html;
-        },
+            },
+            
+            renderAll() {
+                this.renderFlowsList(); 
+                this.renderToolLibrary(); 
+                this.renderTeamView();
+                this.renderWorkflowCanvas();
+                this.renderHistoryView();
+                this.renderSettingsView();
+            },
+    
+            renderWelcomeMessage() {
+                 this.elements.chatMessages.innerHTML = `
+                    <div class="welcome-placeholder">
+                        <img src="https://raw.githubusercontent.com/GusHem/NordSym-Logga/refs/heads/main/FlowNode%20gra%CC%88vling%20avatar%20closeup.svg" alt="Agent Avatar" class="welcome-avatar">
+                        <div>
+                            <h3>Hej! Jag är FlowNode.</h3>
+                            <p>Din personliga assistent som förvandlar dina ord till handling, direkt i webbläsaren.</p>
+                        </div>
+                        <div class="welcome-suggestions">
+                            <div class="welcome-suggestion-card" data-command="Vad är det viktigaste på sidan jag ser nu?">
+                                <strong>Få en snabb sammanfattning</strong>
+                                <span>Analysera en sida och få de viktigaste punkterna direkt.</span>
+                            </div>
+                            <div class="welcome-suggestion-card" data-command="Skapa ett flöde: när en ny affär skapas i Salesforce, skapa en projektmapp i Google Drive.">
+                                <strong>Bygg en automatisering</strong>
+                                <span>Beskriv ett flöde med vanligt språk så bygger jag det åt dig.</span>
+                            </div>
+                            <div class="welcome-suggestion-card" data-command="Skriv ett utkast till ett LinkedIn-inlägg om fördelarna med AI i säljprocessen.">
+                                <strong>Skapa innehåll</strong>
+                                <span>Be mig skriva utkast till mejl, sociala medier-inlägg och mer.</span>
+                            </div>
+                        </div>
+                    </div>`;
+                
+                this.elements.chatMessages.querySelectorAll('.welcome-suggestion-card').forEach(card => {
+                    card.onclick = () => {
+                        this.elements.chatInput.value = card.dataset.command;
+                        this.elements.chatInput.focus();
+                    };
+                });
+            },
+            
+            setView(view) { 
+                this.elements.sidebar.className = "flownode-sidebar";
+                if (State.theme === 'dark') this.elements.sidebar.classList.add('dark');
+                if (view !== 'chat') this.elements.sidebar.classList.add(`${view}-active`);
+                if (view === 'library') this.renderToolLibrary();
+                if (view === 'team') this.renderTeamView();
+                if (view === 'flows') this.renderFlowsList();
+                if (view === 'history') this.renderHistoryView();
+                if (view === 'settings') this.renderSettingsView();
+                if (view === 'canvas') this.renderWorkflowCanvas();
+            },
+    
+            getActiveFlow() { return State.flows.find(f => f.id === State.activeFlowId) || State.flows[0]; },
+            applyTheme() { this.elements.sidebar.classList.toggle('dark', State.theme === 'dark'); this.elements.themeIcon.innerHTML = `<use href="${State.theme === 'dark' ? '#icon-moon' : '#icon-sun'}"></use>`; this.renderWorkflowCanvas(); },
+            toggleTheme() { State.theme = State.theme === 'light' ? 'dark' : 'light'; this.applyTheme(); },
+            setActiveFlow(flowId) { State.activeFlowId = flowId; this.renderAll(); this.setView('canvas'); },
+            newChat() {
+                this.elements.chatMessages.innerHTML = '';
+                this.renderWelcomeMessage();
+                this.elements.contextualSuggestions.innerHTML = '';
+            },
+            
+            handleUserMessage: async function() {
+                const userInput = this.elements.chatInput.value.trim();
+                if (!userInput) return;
+                this.elements.chatMessages.querySelector(".welcome-placeholder")?.remove();
+                this.addMessage({ sender: "user", content: { type: "text", value: userInput } });
+                this.elements.chatInput.value = "";
+                this.elements.contextualSuggestions.innerHTML = "";
+                const loadingMsg = this.addMessage({ sender: "bot", content: { type: "loading" } });
+                const interpretation = await GeminiService.interpretQuery(userInput);
+                let result;
+                if (interpretation.intent === "BUILD_WORKFLOW") {
+                    result = await GeminiService.buildWorkflow(interpretation.command);
+                    this.removeMessage(loadingMsg.id);
+                    if (result.success) {
+                        const activeFlow = this.getActiveFlow();
+                        if (activeFlow) {
+                            activeFlow.nodes = result.workflow.nodes;
+                            activeFlow.connections = result.workflow.connections;
+                            await State.save();
+                            this.addMessage({ sender: "bot", content: { type: "text", value: "OK, jag har skapat flödet. Kika i canvas-vyn!" } });
+                            this.renderAll();
+                            setTimeout(() => this.setView("canvas"), 500);
+                        }
+                    } else {
+                        this.addMessage({ sender: "bot", content: { type: "text", value: result.reason } });
+                    }
+                } else if (interpretation.intent === "EXECUTE_COMMAND") {
+                    result = await GeminiService.executeCommand(interpretation.command);
+                    this.removeMessage(loadingMsg.id);
+                    if (result.success) this.addMessage({ sender: "bot", content: { type: "text", value: result.answer } });
+                } else { // CHAT intent
+                    const pageElement = document.getElementById(`page-${this.currentPage}`);
+                    const pageContext = pageElement.querySelector('.page-context').textContent;
+                    result = await GeminiService.chatAboutContext(interpretation.query, pageContext);
+                    this.removeMessage(loadingMsg.id);
+                    if (result.success) this.addMessage({ sender: "bot", content: { type: "text", value: result.answer } });
+                }
+            },
+    
+            simulatePageChangeAndAnalyze: async function() {
+                this.elements.chatMessages.querySelector(".welcome-placeholder")?.remove();
+                this.elements.contextualSuggestions.innerHTML = '';
+                const loadingMsg = this.addMessage({ sender: "bot", content: { type: "loading" } });
+                
+                // If on flownode page, switch to the first demo page. Otherwise, cycle through demo pages.
+                if (this.currentPage === 'flownode') {
+                    // Special case for initial analysis from landing page
+                    this.updateBrowserUI(); // Keep it on flownode page
+                } else {
+                    this.currentPage = this.demoPageRotation[this.currentDemoIndex];
+                    this.currentDemoIndex = (this.currentDemoIndex + 1) % this.demoPageRotation.length;
+                    this.updateBrowserUI();
+                }
 
-        renderTeamView: function() {
-            const container = this.elements.teamViewContainer;
-            if (container) {
-                container.innerHTML = `
-                <div class="team-member-list">
-                    ${State.users.map(user => `
-                    <div class="team-member-card">
-                        <div class="member-info">
-                            <div class="member-avatar" style="background-image: url(${user.avatar})">
-                                <div class="online-indicator ${user.online ? "online" : ""}"></div>
-                            </div>
-                            <div class="member-details">
-                                <div class="name">${user.name} ${user.id === "u1" ? "(You)" : ""}</div>
-                                <div class="role">${user.role}</div>
-                            </div>
-                        </div>
-                        <div class="member-socials">
-                            <a href="${user.socials.linkedin}" target="_blank" title="LinkedIn"><svg><use href="#icon-linkedin"></use></svg></a>
-                            <a href="${user.socials.twitter}" target="_blank" title="Twitter"><svg><use href="#icon-twitter"></use></svg></a>
-                        </div>
-                    </div>`).join("")}
-                </div>
-                <div class="invite-section">
-                    <h3>Bjud in teammedlem</h3>
-                    <div class="invite-bar">
-                        <input type="email" class="invite-input" id="invite-email-input" placeholder="kollega@foretag.se">
-                        <button class="invite-btn" id="invite-btn">Bjud in</button>
+                const pageElement = document.getElementById(`page-${this.currentPage}`);
+                const pageContext = pageElement.querySelector('.page-context').textContent;
+                const result = await GeminiService.suggestFromContext(pageContext);
+                this.removeMessage(loadingMsg.id);
+                if (result.success) {
+                    this.addMessage({ sender: "bot", content: { type: "text", value: result.analysis } });
+                    this.renderSuggestions(result.title, result.suggestions);
+                } else {
+                    this.addMessage({ sender: "bot", content: { type: "text", value: "Hittade inga förslag för den här sidan." } });
+                }
+            },
+            
+            updateBrowserUI: function() {
+                const pageInfo = this.demoPages[this.currentPage];
+                this.elements.addressBar.value = pageInfo.url;
+                this.elements.browserTabs.innerHTML = Object.values(this.demoPages).map(p => `
+                    <div class="browser-tab ${p.id === this.currentPage ? 'active' : ''}" data-page-id="${p.id}">
+                        <img src="${p.icon}" class="tab-icon" alt="${p.title} icon">
+                        ${p.title}
                     </div>
-                </div>`;
-            }
-        },
-
-        renderHistoryView: function() {
-            const container = this.elements.historyViewContainer;
-            if (container) {
+                `).join('');
+                
+                this.elements.browserTabs.querySelectorAll('.browser-tab').forEach(tab => {
+                    tab.onclick = (e) => {
+                        const pageId = tab.dataset.pageId;
+                        if (this.currentPage !== pageId) {
+                            this.currentPage = pageId;
+                            this.updateBrowserUI();
+                        }
+                    };
+                });
+                
+                this.elements.dummyContent.querySelectorAll('.dummy-page').forEach(page => page.classList.add('hidden'));
+                document.getElementById(`page-${this.currentPage}`).classList.remove('hidden');
+            },
+    
+            renderSuggestions: function(title, suggestions) {
+                let html = `<div class="suggestion-card-container"><p style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.25rem;">${title}</p>`;
+                suggestions.forEach(sugg => { html += `<button class="suggestion-btn" data-command="${sugg.command}">${sugg.label}</button>`; });
+                html += `</div>`;
+                this.elements.contextualSuggestions.innerHTML = html;
+                this.elements.contextualSuggestions.querySelectorAll(".suggestion-btn").forEach(btn => {
+                    btn.onclick = () => {
+                        this.elements.chatInput.value = btn.dataset.command;
+                        this.handleUserMessage();
+                    };
+                });
+            },
+    
+            addMessage: function(msg) {
+                const msgId = `msg-${Date.now()}`;
+                const msgEl = document.createElement("div");
+                const senderClass = msg.sender === "user" ? "user-message" : "bot-message";
+                msgEl.className = `chat-message ${senderClass}`;
+                msgEl.id = msgId;
+                const content = msg.content.type === "loading" ? "..." : msg.content.value;
+                if (msg.sender === 'bot') {
+                     msgEl.innerHTML = `<img src="https://raw.githubusercontent.com/GusHem/NordSym-Logga/refs/heads/main/FlowNode%20gra%CC%88vling%20avatar%20closeup.svg" alt="Agent Avatar" class="message-avatar"><div class="message-bubble">${content}</div>`;
+                } else {
+                     msgEl.innerHTML = `<div class="message-bubble">${content}</div>`;
+                }
+                this.elements.chatMessages.appendChild(msgEl);
+                this.elements.chatMessages.scrollTop = this.elements.chatMessages.scrollHeight;
+                return { id: msgId, element: msgEl };
+            },
+    
+            removeMessage: function(msgId) { document.getElementById(msgId)?.remove(); },
+            
+            renderWorkflowCanvas() {
+                const flow = this.getActiveFlow();
+                const canvas = this.elements.workflowCanvas;
+                if (!flow || !canvas) return;
+    
+                this.elements.workflowCanvasContainer.classList.toggle('flow-active', flow.isActive);
+                this.elements.activateFlowBtn.classList.toggle('active', flow.isActive);
+    
+                canvas.innerHTML = '';
+                if (flow.nodes.length === 0) {
+                    canvas.innerHTML = `<div style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); color: var(--text-secondary); text-align: center; padding: 1rem;">Klicka på '+' för att lägga till en nod<br>eller beskriv ett flöde i chatten.</div>`;
+                } else {
+                    flow.nodes.forEach(node => this.createNodeElement(node));
+                }
+                this.drawConnections();
+            },
+    
+            createNodeElement(node) {
+                const nodeInfo = NodeLibrary[node.variantId] || NodeLibrary.default;
+                const nodeEl = document.createElement('div');
+                nodeEl.className = 'workflow-node';
+                nodeEl.id = node.id;
+                nodeEl.style.left = `${node.position.x}px`;
+                nodeEl.style.top = `${node.position.y}px`;
+                nodeEl.innerHTML = `
+                    <div class="node-icon" style="background-color: ${nodeInfo.color};">${nodeInfo.icon}</div>
+                    <div class="node-label">${nodeInfo.label}</div>
+                    <div class="connection-handle in"></div><div class="connection-handle out"></div>
+                `;
+                nodeEl.addEventListener('mousedown', (e) => this.handleNodeMouseDown(e, node));
+                this.elements.workflowCanvas.appendChild(nodeEl);
+            },
+    
+            drawConnections() {
+                const flow = this.getActiveFlow();
+                const svgLayer = this.elements.workflowSvgLayer;
+                svgLayer.innerHTML = '';
+                flow.connections.forEach(conn => {
+                    const fromNodeEl = document.getElementById(conn.from);
+                    const toNodeEl = document.getElementById(conn.to);
+                    if (fromNodeEl && toNodeEl) {
+                        const line = this.createSvgLine(
+                            fromNodeEl.offsetLeft + fromNodeEl.offsetWidth,
+                            fromNodeEl.offsetTop + fromNodeEl.offsetHeight / 2,
+                            toNodeEl.offsetLeft,
+                            toNodeEl.offsetTop + toNodeEl.offsetHeight / 2
+                        );
+                        svgLayer.appendChild(line);
+                    }
+                });
+            },
+    
+            handleNodeMouseDown(e, node) {
+                if (e.target.classList.contains('connection-handle')) {
+                    e.stopPropagation();
+                    this.startConnection(e, node);
+                } else {
+                    this.startDragging(e, node);
+                }
+            },
+    
+            startDragging(e, node) {
+                this.canvasState.dragging = true;
+                this.canvasState.dragTarget = document.getElementById(node.id);
+                const rect = this.canvasState.dragTarget.getBoundingClientRect();
+                const canvasRect = this.elements.workflowCanvasContainer.getBoundingClientRect();
+                this.canvasState.dragOffsetX = e.clientX - rect.left;
+                this.canvasState.dragOffsetY = e.clientY - rect.top;
+            },
+    
+            startConnection(e, fromNode) {
+                this.canvasState.connecting = true;
+                this.canvasState.fromNodeId = fromNode.id;
+                const fromNodeEl = document.getElementById(fromNode.id);
+                const x1 = fromNodeEl.offsetLeft + fromNodeEl.offsetWidth;
+                const y1 = fromNodeEl.offsetTop + fromNodeEl.offsetHeight / 2;
+                this.canvasState.tempLine = this.createSvgLine(x1, y1, x1, y1);
+                this.canvasState.tempLine.style.pointerEvents = 'none';
+                this.elements.workflowSvgLayer.appendChild(this.canvasState.tempLine);
+            },
+            
+            handleCanvasMouseMove(e) {
+                const canvasRect = this.elements.workflowCanvasContainer.getBoundingClientRect();
+                const mouseX = e.clientX - canvasRect.left;
+                const mouseY = e.clientY - canvasRect.top;
+                
+                if (this.canvasState.dragging && this.canvasState.dragTarget) {
+                    const flow = this.getActiveFlow();
+                    const node = flow.nodes.find(n => n.id === this.canvasState.dragTarget.id);
+                    node.position.x = mouseX - this.canvasState.dragOffsetX;
+                    node.position.y = mouseY - this.canvasState.dragOffsetY;
+                    this.canvasState.dragTarget.style.left = `${node.position.x}px`;
+                    this.canvasState.dragTarget.style.top = `${node.position.y}px`;
+                    this.drawConnections();
+                }
+    
+                if (this.canvasState.connecting && this.canvasState.tempLine) {
+                     this.canvasState.tempLine.setAttribute('x2', mouseX);
+                     this.canvasState.tempLine.setAttribute('y2', mouseY);
+                }
+            },
+    
+            handleCanvasMouseUp(e) {
+                if (this.canvasState.dragging) {
+                    this.canvasState.dragging = false;
+                    this.canvasState.dragTarget = null;
+                    State.save();
+                }
+                if (this.canvasState.connecting) {
+                    const targetEl = e.target;
+                    if (targetEl.classList.contains('connection-handle') && targetEl.classList.contains('in')) {
+                        const toNodeId = targetEl.parentElement.id;
+                        if (this.canvasState.fromNodeId !== toNodeId) {
+                             const flow = this.getActiveFlow();
+                             flow.connections.push({ from: this.canvasState.fromNodeId, to: toNodeId });
+                             State.save();
+                        }
+                    }
+                    this.canvasState.connecting = false;
+                    this.canvasState.fromNodeId = null;
+                    this.canvasState.tempLine?.remove();
+                    this.canvasState.tempLine = null;
+                    this.drawConnections();
+                }
+            },
+            
+            toggleNodePicker(show) {
+                this.elements.nodePickerModal.classList.toggle('visible', show);
+                if(show) this.renderNodePicker();
+            },
+    
+            renderNodePicker() {
+                const container = this.elements.nodePickerBody;
+                container.innerHTML = '';
+                 for (const category in State.tools) {
+                    container.innerHTML += `<div class="tool-category"><h3>${category}</h3><div class="tool-grid">`;
+                    State.tools[category].forEach(tool => {
+                        const nodeInfo = NodeLibrary[tool.id + '-trigger'] || NodeLibrary[tool.id + '-action']; // Simple assumption
+                         if (nodeInfo) {
+                            const card = document.createElement('div');
+                            card.className = 'tool-card-front';
+                            card.innerHTML = `<div class="tool-icon" style="background-color: ${nodeInfo.color};">${nodeInfo.icon}</div><div class="tool-name">${tool.name}</div>`;
+                            card.onclick = () => this.addNodeFromPicker(tool.id + '-trigger');
+                            container.querySelector('.tool-grid:last-child').appendChild(card);
+                         }
+                    });
+                    container.innerHTML += `</div></div>`;
+                }
+            },
+            
+            addNodeFromPicker(variantId) {
+                const flow = this.getActiveFlow();
+                if (flow) {
+                    flow.nodes.push({ id: `node_${Date.now()}`, variantId, position: { x: 50, y: 50 } });
+                    this.renderWorkflowCanvas();
+                }
+                this.toggleNodePicker(false);
+            },
+    
+            toggleFlowActive() {
+                const flow = this.getActiveFlow();
+                if (flow) {
+                    flow.isActive = !flow.isActive;
+                    this.renderWorkflowCanvas();
+                    State.save();
+                }
+            },
+    
+            createSvgLine(x1, y1, x2, y2) {
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+                line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+                line.setAttribute('class', 'connection-line');
+                return line;
+            },
+            
+            createNewFlow() {
+                const newFlow = { id: `flow_${Date.now()}`, name: "Namnlöst flöde", nodes: [], connections: [], isActive: false };
+                State.flows.push(newFlow);
+                State.activeFlowId = newFlow.id;
+                this.renderAll();
+                this.setView("canvas");
+            },
+    
+            renderFlowsList() {
+                const container = this.elements.flowsList;
+                if (!container) return;
+                container.innerHTML = State.flows.map(flow =>
+                    `<div class="flow-card ${flow.id === State.activeFlowId ? "active" : ""}" data-flow-id="${flow.id}"><span>${flow.name}</span></div>`
+                ).join("");
+                container.querySelectorAll(".flow-card").forEach(card => card.onclick = () => this.setActiveFlow(card.dataset.flowId));
+            },
+    
+            renderToolLibrary() {
+                const container = this.elements.toolLibraryContainer;
+                if (!container) return;
+                const searchTerm = this.elements.toolSearchInput.value.toLowerCase();
+                let html = "";
+                for (const category in State.tools) {
+                    const filteredTools = State.tools[category].filter(tool => tool.name.toLowerCase().includes(searchTerm));
+                    if (filteredTools.length > 0) {
+                        html += `<div class="tool-category"><h3>${category}</h3><div class="tool-grid">`;
+                        filteredTools.forEach(tool => {
+                            html += `
+                            <div class="tool-card-flipper" data-tool-id="${tool.id}" data-category="${category}">
+                                <div class="tool-card-inner">
+                                    <div class="tool-card-front">
+                                        <div class="tool-icon" style="background-color: ${tool.iconBg};">${tool.name.charAt(0)}</div>
+                                        <div class="tool-name">${tool.name} <span class="status-dot ${tool.status === 'connected' ? "connected" : ""}"></span></div>
+                                    </div>
+                                    <div class="tool-card-back">
+                                        <h4>Anslut ${tool.name}</h4>
+                                        <input type="password" class="api-token-input" placeholder="API-nyckel...">
+                                        ${this.getToolButtonHTML(tool)}
+                                    </div>
+                                </div>
+                            </div>`;
+                        });
+                        html += `</div></div>`;
+                    }
+                }
+                container.innerHTML = html;
+                this.addToolCardListeners();
+            },
+            
+            getToolButtonHTML: function(tool) {
+                switch(tool.status) {
+                    case 'connected': return `<button class="connect-btn status-green" data-action="disconnect">Ansluten</button>`;
+                    case 'connecting': return `<button class="connect-btn status-yellow" disabled>Ansluter...</button>`;
+                    case 'disconnected':
+                    default:
+                        return `<button class="connect-btn status-red" data-action="connect">Anslut</button>`;
+                }
+            },
+    
+            addToolCardListeners: function() {
+                this.elements.toolLibraryContainer.querySelectorAll('.tool-card-flipper').forEach(flipper => {
+                    flipper.onclick = (e) => {
+                        // Prevent flipping when clicking the button inside
+                        if (e.target.classList.contains('connect-btn') || e.target.classList.contains('api-token-input')) {
+                            return;
+                        }
+                        flipper.classList.toggle('is-flipped');
+                    };
+                });
+    
+                this.elements.toolLibraryContainer.querySelectorAll('.connect-btn').forEach(btn => {
+                    btn.onclick = () => {
+                        const flipper = btn.closest('.tool-card-flipper');
+                        const toolId = flipper.dataset.toolId;
+                        const category = flipper.dataset.category;
+                        const tool = State.tools[category].find(t => t.id === toolId);
+                        if (!tool) return;
+    
+                        const action = btn.dataset.action;
+                        if (action === 'connect') {
+                            tool.status = 'connecting';
+                            this.renderToolLibrary(); 
+                            setTimeout(() => {
+                                tool.status = 'connected';
+                                this.renderToolLibrary();
+                            }, 1500);
+                        } else if (action === 'disconnect') {
+                            tool.status = 'disconnected';
+                            this.renderToolLibrary();
+                        }
+                    };
+                });
+            },
+    
+    
+            renderTeamView: function() {
+                const container = this.elements.teamViewContainer;
+                if (!container) return;
+                container.innerHTML = `
+                    <div class="team-member-list">
+                        ${State.users.map(user => `
+                        <div class="team-member-card">
+                            <div class="member-info">
+                                <div class="member-avatar" style="background-image: url(${user.avatar})"><div class="online-indicator ${user.online ? "online" : ""}"></div></div>
+                                <div class="member-details"><div class="name">${user.name} ${user.id === "u1" ? "(You)" : ""}</div><div class="role">${user.role}</div></div>
+                            </div>
+                            <div class="member-socials">
+                                <a href="${user.socials.linkedin}" target="_blank" title="LinkedIn"><svg><use href="#icon-linkedin"></use></svg></a>
+                                <a href="${user.socials.twitter}" target="_blank" title="Twitter"><svg><use href="#icon-twitter"></use></svg></a>
+                            </div>
+                        </div>`).join("")}
+                    </div>
+                    <div class="invite-section">
+                        <h3>Bjud in teammedlem</h3>
+                        <div class="invite-bar"><input type="email" class="invite-input" id="invite-email-input" placeholder="kollega@foretag.se"><button class="invite-btn" id="invite-btn">Bjud in</button></div>
+                    </div>`;
+            },
+    
+            renderHistoryView: function() {
+                const container = this.elements.historyViewContainer;
+                if (!container) return;
                 container.innerHTML = `<h2 class="view-title">Chatthistorik</h2><div class="history-list">` +
-                    State.chatHistory.map(chat => `
-                        <div class="history-item" data-id="${chat.id}">
-                            <span class="history-title">${chat.title}</span>
-                            <span class="history-date">${chat.date}</span>
-                        </div>
-                    `).join("") + `</div>`;
-            }
-        },
-
-        renderSettingsView: function() {
-            const container = this.elements.settingsViewContainer;
-            if(container) {
+                    State.chatHistory.map(chat => `<div class="history-item" data-id="${chat.id}"><span class="history-title">${chat.title}</span><span class="history-date">${chat.date}</span></div>`).join("") + `</div>`;
+            },
+    
+            renderSettingsView: function() {
+                const container = this.elements.settingsViewContainer;
+                if(!container) return;
                 container.innerHTML = `
                     <h2 class="view-title">Inställningar</h2>
                     <div class="setting-item">
                         <label for="agent-persona-input">Agentens Personlighet</label>
                         <p class="setting-description">Definiera hur du vill att FlowNode ska svara. T.ex. "en hjälpsam expert" eller "en kreativ idéspruta".</p>
                         <input type="text" id="agent-persona-input" class="settings-input" value="${State.settings.agentPersona}">
-                    </div>
-                `;
+                    </div>`;
                 const input = container.querySelector('#agent-persona-input');
-                if (input) {
-                    input.onchange = (e) => {
-                        State.settings.agentPersona = e.target.value;
-                        State.save(); // Placeholder for saving
-                    };
-                }
+                if (input) input.onchange = (e) => { State.settings.agentPersona = e.target.value; State.save(); };
             }
-        }
+        });
+        App.init();
     });
-
-    // --- INITIALIZATION ---
-    document.addEventListener('DOMContentLoaded', () => App.init());
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
 
